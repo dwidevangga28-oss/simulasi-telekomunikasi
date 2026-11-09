@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Platform Simulasi Interaktif Sistem Transmisi Digital Berbasis Web</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eef1f4; --surface:#ffffff; --ink:#14202b; --muted:#566574; --line:#cdd5dd;
+  --signal:#1f5fbf; --noise:#c27803; --ok:#1d7a4a; --bad:#b3261e; --soft:#e3ecf8;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f161d; --surface:#17212b; --ink:#e6ecf2; --muted:#93a3b3; --line:#2b3a48;
+    --signal:#6aa4ff; --noise:#f0b24a; --ok:#5fcf93; --bad:#ff8a80; --soft:#1d2d44;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --surface:#17212b; --ink:#e6ecf2; --muted:#93a3b3; --line:#2b3a48;
+  --signal:#6aa4ff; --noise:#f0b24a; --ok:#5fcf93; --bad:#ff8a80; --soft:#1d2d44;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+header h1{font-size:1.5rem;line-height:1.25;margin:0 0 4px;font-weight:600}
+header p{margin:0;color:var(--muted);max-width:62ch}
+nav{display:flex;gap:6px;overflow-x:auto;margin:20px 0 16px;padding-bottom:2px;border-bottom:1px solid var(--line)}
+nav button{flex:0 0 auto;border:0;background:none;color:var(--muted);font:500 .95rem var(--sans);padding:10px 14px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav button b{font-family:var(--mono);font-weight:500;margin-right:6px;color:var(--signal)}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--signal)}
+nav button:focus-visible,.theme:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+section[hidden]{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-bottom:14px}
+.card h2{font-size:1.15rem;margin:0 0 6px;font-weight:600}
+.card h3{font-size:1rem;margin:0 0 6px;font-weight:600}
+.card p{margin:0 0 8px;color:var(--muted);max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.plan{margin:8px 0 0;padding-left:18px}
+.plan li{margin:3px 0}
+.chip{display:inline-block;font:500 .8rem var(--sans);padding:2px 10px;border-radius:999px;background:var(--soft);color:var(--signal)}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 0}
+.chain span{border:1px solid var(--line);border-radius:4px;padding:4px 10px;background:var(--bg)}
+.chain i{color:var(--muted);font-style:normal}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{font-family:var(--mono);font-size:.85rem}
+.pass{color:var(--ok);font-weight:600}.fail{color:var(--bad);font-weight:600}
+.theme{float:right;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:6px 10px;font:500 .85rem var(--sans);cursor:pointer}
+.ctl{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin:4px 0 14px}
+.ctl label{display:flex;flex-direction:column;gap:4px;font-weight:500;font-size:.9rem}
+.ctl select,.ctl button{font:400 .95rem var(--sans);padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink)}
+.ctl button{cursor:pointer;border-color:var(--signal);color:var(--signal);font-weight:500}
+.ctl input[type=range]{width:220px;accent-color:var(--signal)}
+.ctl output{font-family:var(--mono);color:var(--signal)}
+.plot{width:100%;display:block;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+#dC{aspect-ratio:1/1}#dB{aspect-ratio:1/1}
+.legend{font-size:.85rem;color:var(--muted);margin:8px 0 0}
+.ctl input[type=text]{font:400 .95rem var(--mono);padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);width:230px}
+#cK{aspect-ratio:1/1}#cW{aspect-ratio:16/7}#cS{aspect-ratio:16/8}
+.ctl input[type=number]{font:400 .95rem var(--mono);padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);width:120px}
+.blocks{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:flex-end;margin:8px 0}
+.blk{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 12px;border-radius:4px;font:500 .9rem var(--sans);cursor:pointer}
+.blk[aria-pressed=true]{border-color:var(--signal);background:var(--soft);color:var(--signal)}
+.blk:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.blk.sm{padding:2px 10px;font-size:.78rem}
+.stack{display:inline-flex;flex-direction:column;gap:4px;align-items:stretch;text-align:center}
+.arr{color:var(--muted);align-self:flex-end;padding-bottom:8px}
+.rowlbl{font-weight:600;font-size:.9rem;margin-top:10px}
+tr.sel td{background:var(--soft)}
+#bT{aspect-ratio:16/6}#csK{aspect-ratio:1/1}#bcR,#bcZ{aspect-ratio:16/7}
+.hl{background:var(--soft);color:var(--signal);font-weight:600;border-radius:3px;padding:0 3px}#bS{aspect-ratio:16/8}#fL{aspect-ratio:16/8}#fV{aspect-ratio:16/8}#eF{aspect-ratio:16/5}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <button class="theme" id="themeBtn" type="button">Ganti tema</button>
+  <h1>Platform Simulasi Interaktif Sistem Transmisi Digital Berbasis Web</h1>
+  <p>Simulasi interaktif end-to-end berbasis web: dari sumber informasi hingga tujuan, mencakup alur sistem, bandwidth dan daya, modulasi, konstelasi dan BER, blok RF, serta link budget (Pertemuan 1 sampai 6).</p>
+</header>
+
+<nav role="tablist" aria-label="Bagian simulasi">
+  <button role="tab" data-t="A"><b>A</b>Alur sistem</button>
+  <button role="tab" data-t="B"><b>B</b>Bandwidth &amp; daya</button>
+  <button role="tab" data-t="C"><b>C</b>Modulasi</button>
+  <button role="tab" data-t="D"><b>D</b>Konstelasi &amp; BER</button>
+  <button role="tab" data-t="E"><b>E</b>Blok RF</button>
+  <button role="tab" data-t="F"><b>F</b>Antena &amp; link</button>
+</nav>
+
+<section id="A" role="tabpanel">
+  <div class="card">
+    <h2>Alur informasi dan sistem</h2>
+    <p>Pesan berubah bentuk di tiap blok: informasi, lalu data digital, lalu sinyal fisik, lalu kembali menjadi informasi.</p>
+    <div class="blocks" id="aChain"></div>
+  </div>
+  <div class="card"><p id="aDesc" style="margin-bottom:10px"></p>
+<div class="ctl"><label>Pesan teks<input type="text" id="aTxt" value="HAI UTS" maxlength="24"></label>
+<label>Eb/N0 saluran <output id="aNV"></output><input type="range" id="aN" min="0" max="14" step="0.5" value="6"></label>
+<button type="button" id="aGo">Kirim ulang</button></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Tahap</th><th>Bentuk pesan</th><th>Isi saat ini</th></tr></thead><tbody id="aT"></tbody></table></div>
+<p class="legend">Pesan benar-benar dikirim lewat simulasi: teks menjadi bit, bit menjadi simbol QPSK, derau ditambahkan, lalu simbol diputuskan kembali menjadi bit dan teks. Turunkan Eb/N0 sampai pesan rusak.</p></div>
+<div class="card"><h3>Informasi, data digital, dan sinyal fisik</h3>
+<table><thead><tr><th>Bentuk</th><th>Artinya</th><th>Contoh</th></tr></thead><tbody>
+<tr><td>Informasi</td><td>Makna yang ingin disampaikan, belum terikat pada bentuk fisik tertentu</td><td>Kata “HAI”</td></tr>
+<tr><td>Data digital</td><td>Representasi informasi sebagai deretan bit 0 dan 1 (coding)</td><td>01001000 01000001 01001001</td></tr>
+<tr><td>Sinyal fisik</td><td>Besaran fisik yang merambat: tegangan, arus, atau gelombang elektromagnetik hasil modulasi</td><td>Gelombang 2,4 GHz berfase tertentu</td></tr></tbody></table></div>
+</section>
+
+<section id="B" role="tabpanel" hidden>
+  <div class="card">
+    <h2>Bandwidth dan daya</h2>
+    <p>Sinyal dalam domain waktu dan frekuensi, serta rantai daya dari pemancar ke penerima.</p>
+  </div>
+  <div class="card"><h3>Daya pemancar dan rantai gain/loss</h3>
+<p>Geser Ptx dalam dBm atau ketik dalam Watt: keduanya saling menyesuaikan.</p>
+<div class="ctl"><label>Ptx <output id="bPV"></output><input type="range" id="bP" min="-10" max="50" step="0.5" value="30"></label>
+<label>Ptx (Watt)<input type="number" id="bW" min="0.0001" max="100" step="any" value="1"></label>
+<label>Gain PA <output id="bG1V"></output><input type="range" id="bG1" min="-10" max="30" step="0.5" value="10"></label>
+<label>Loss kabel <output id="bLV"></output><input type="range" id="bL" min="0" max="20" step="0.5" value="3"></label>
+<label>Gain antena <output id="bG2V"></output><input type="range" id="bG2" min="0" max="30" step="0.5" value="12"></label></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Tahap</th><th>Gain/Loss</th><th>Daya (dBm)</th><th>Daya (W)</th></tr></thead><tbody id="bChain"></tbody></table></div>
+<p class="legend">dBm = 10·log₁₀(P / 1 mW). Tambah 3 dB berarti daya ×2, tambah 10 dB berarti ×10.</p></div>
+<div class="card"><h3>Sinyal waktu dan spektrum frekuensi (FFT)</h3>
+<div class="ctl"><label>Sinyal<select id="bSig"><option value="sin">Sinus (1 frekuensi)</option><option value="sq">Gelombang kotak</option><option value="nrz">Data digital acak (NRZ)</option></select></label>
+<label>f0 <output id="bFV"></output><input type="range" id="bF" min="5" max="100" step="1" value="20"></label></div>
+<canvas id="bT" class="plot" role="img" aria-label="Sinyal dalam domain waktu"></canvas>
+<canvas id="bS" class="plot" style="margin-top:12px" role="img" aria-label="Spektrum daya hasil FFT"></canvas>
+<p class="legend" id="bNote"></p>
+<p class="legend"><b>Bandwidth vs frekuensi carrier.</b> Bandwidth adalah lebar pita frekuensi yang ditempati sinyal, yaitu seberapa lebar spektrum di grafik menyebar. Frekuensi carrier (pembawa) adalah frekuensi pusat tempat spektrum itu diletakkan, yang ditentukan oleh LO dan mixer. Grafik di atas masih baseband, jadi berpusat di 0 Hz. Contoh: sinyal baseband selebar 20 MHz yang dibawa pada carrier 2,4 GHz menempati sekitar 2,39 sampai 2,41 GHz. Mengubah carrier hanya menggeser posisi pita, tidak mengubah lebarnya. Pada modulasi dua sisi pita (misalnya AM-DSB), bandwidth RF kira-kira dua kali bandwidth baseband.</p></div>
+<div class="card"><h3>Pergeseran frekuensi carrier</h3>
+<p>Sinyal baseband dengan bandwidth B dinaikkan ke carrier fc oleh mixer dan LO. Geser fc: seluruh spektrum berpindah tempat, tetapi lebarnya tetap B. Daya total sama dengan Ptx pada panel di atas.</p>
+<div class="ctl"><label>Frekuensi carrier fc <output id="bcCV"></output><input type="range" id="bcC" min="200" max="5800" step="10" value="2400"></label>
+<label>Bandwidth B <output id="bcBV"></output><input type="range" id="bcB" min="20" max="400" step="10" value="100"></label></div>
+<canvas id="bcR" class="plot" role="img" aria-label="Spektrum RF pada sumbu 0 sampai 6000 MHz"></canvas>
+<p class="legend">Tampilan penuh 0 sampai 6000 MHz: ubah fc dan lihat spektrum bergeser.</p>
+<canvas id="bcZ" class="plot" style="margin-top:8px" role="img" aria-label="Zoom spektrum di sekitar carrier"></canvas>
+<p class="legend">Zoom di sekitar carrier: lebar B (panah) tidak berubah ketika hanya fc yang digeser.</p>
+<table style="margin-top:8px"><tbody id="bcT"></tbody></table>
+<p class="legend">Model spektrum: sinyal digital QPSK/QAM berbentuk raised-cosine dengan roll-off 0,35, sehingga laju simbol Rs = B/(1 + 0,35). Satuan: frekuensi dalam MHz, rapat daya dalam dBm per MHz.</p></div>
+</section>
+
+<section id="C" role="tabpanel" hidden>
+  <div class="card">
+    <h2>Modulasi digital</h2>
+    <p>Pemetaan bit ke simbol untuk QPSK (2 bit per simbol) dan 16-QAM (4 bit per simbol).</p>
+  </div>
+  <div class="card"><h3>Pemetaan bit ke simbol</h3>
+<p>Bit dikelompokkan per simbol (QPSK: 2 bit, 16-QAM: 4 bit) lalu dipetakan ke titik I-Q dengan Gray coding, sehingga titik bertetangga hanya berbeda 1 bit.</p>
+<div class="ctl"><label>Modulasi<select id="cMod"><option value="QPSK">QPSK (2 bit/simbol)</option><option value="16QAM">16-QAM (4 bit/simbol)</option></select></label>
+<label>Deretan bit<input type="text" id="cBits" value="1011001011100111" inputmode="numeric"></label>
+<button type="button" id="cRnd">Acak 16 bit</button></div>
+<div class="grid"><div><table><thead><tr><th>Simbol</th><th>Bit</th><th>I</th><th>Q</th><th>Fase</th></tr></thead><tbody id="cMapT"></tbody></table><p class="legend" id="cMapN"></p></div>
+<div><canvas id="cK" class="plot" role="img" aria-label="Konstelasi dengan simbol hasil pemetaan"></canvas><p class="legend">Lingkaran: titik ideal dengan bit-nya. Titik biru: simbol dari deretan bit Anda. Angka di dekat titik adalah nomor urut simbol; jika beberapa simbol jatuh di titik yang sama, nomornya digabung (misalnya 2, 5, 8). Kode bit ada di bawah tiap titik.</p></div></div></div>
+<div class="card"><h3>Pemrosesan simbol langkah demi langkah</h3>
+<p>Memakai modulasi dan deretan bit dari panel di atas. Tiap langkah mengambil satu kelompok bit, mengubahnya menjadi level I dan Q (Gray coding), lalu menempatkannya pada diagram konstelasi.</p>
+<div class="ctl"><button type="button" id="csPrev">Sebelumnya</button><button type="button" id="csPlay">Putar</button><button type="button" id="csNext">Berikutnya</button>
+<label>Kecepatan putar<select id="csSpd"><option value="1300">Lambat</option><option value="800" selected>Sedang</option><option value="400">Cepat</option></select></label></div>
+<div class="grid"><div><p id="csBits" class="n" style="word-break:break-all;margin-bottom:8px"></p><table><tbody id="csInfo"></tbody></table></div>
+<div><canvas id="csK" class="plot" role="img" aria-label="Konstelasi dengan simbol aktif"></canvas><p class="legend">Lingkaran: titik ideal. Titik kecil biru: simbol yang sudah diproses. Titik jingga: simbol aktif, dengan garis putus ke sumbu I dan Q.</p></div></div></div>
+<div class="card"><h3>AM, FM, ASK, FSK, dan BPSK</h3>
+<p>Pesan (atas) menggeser salah satu sifat gelombang pembawa (bawah): amplitudo, frekuensi, atau fase.</p>
+<div class="ctl"><label>Skema<select id="cSch"><option value="AM">AM (analog)</option><option value="FM">FM (analog)</option><option value="ASK">ASK (digital)</option><option value="FSK">FSK (digital)</option><option value="BPSK" selected>BPSK (digital)</option></select></label></div>
+<canvas id="cW" class="plot" role="img" aria-label="Pesan dan sinyal termodulasi"></canvas>
+<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Skema</th><th>Jenis</th><th>Yang diubah</th><th>Contoh pemakaian</th></tr></thead><tbody>
+<tr><td>AM</td><td>Analog</td><td>Amplitudo pembawa mengikuti pesan</td><td>Radio siaran AM</td></tr>
+<tr><td>FM</td><td>Analog</td><td>Frekuensi pembawa mengikuti pesan</td><td>Radio siaran FM</td></tr>
+<tr><td>ASK</td><td>Digital</td><td>Amplitudo per bit (di sini bit 0 = mati)</td><td>RFID, serat optik</td></tr>
+<tr><td>FSK</td><td>Digital</td><td>Frekuensi berpindah per bit</td><td>Modem awal, Bluetooth (GFSK)</td></tr>
+<tr><td>BPSK</td><td>Digital</td><td>Fase 0° atau 180° per bit (1 bit/simbol)</td><td>Satelit, tautan berlaju rendah</td></tr></tbody></table></div>
+<p class="legend">QPSK dan 16-QAM menggabungkan amplitudo dan fase pada dua pembawa (I dan Q) agar tiap simbol membawa lebih dari 1 bit.</p></div>
+<div class="card"><h3>Sampling dan kuantisasi</h3>
+<p>Sinyal analog diambil contohnya tiap 1/fs detik (garis biru), lalu tiap contoh dibulatkan ke salah satu 2<sup>n</sup> level (garis jingga). Selisihnya adalah derau kuantisasi.</p>
+<div class="ctl"><label>Frekuensi sinyal fm <output id="cFmV"></output><input type="range" id="cFm" min="1" max="10" step="0.5" value="2"></label>
+<label>Laju sampling fs <output id="cFsV"></output><input type="range" id="cFs" min="2" max="60" step="1" value="14"></label>
+<label>Bit per contoh n <output id="cNV"></output><input type="range" id="cN" min="1" max="6" step="1" value="3"></label></div>
+<canvas id="cS" class="plot" role="img" aria-label="Sampling dan kuantisasi sinyal sinus"></canvas>
+<p class="legend">Jendela 1 detik. Lingkaran kosong: contoh asli. Titik jingga: nilai setelah kuantisasi.</p>
+<table style="margin-top:10px"><tbody id="cQOut"></tbody></table></div>
+</section>
+
+<section id="D" role="tabpanel" hidden>
+  <div class="card">
+    <h2>Konstelasi, derau, dan BER</h2>
+    <p>Titik simbol pada bidang I-Q menyebar saat derau naik, dan itu terukur sebagai Bit Error Rate.</p>
+  </div>
+  <div class="card"><span class="chip">Langkah 2 selesai</span>
+    <div class="ctl">
+<label>Modulasi<select id="dMod"><option value="QPSK">QPSK (2 bit/simbol)</option><option value="16QAM">16-QAM (4 bit/simbol)</option></select></label>
+<label>Eb/N0 <output id="dSnrV">8 dB</output><input type="range" id="dSnr" min="0" max="20" step="0.5" value="8"></label>
+<label>Jumlah bit<select id="dN"><option value="10000">10.000</option><option value="100000" selected>100.000</option><option value="500000">500.000</option></select></label>
+<button type="button" id="dRe">Ulangi dengan bit baru</button>
+</div>
+<div class="grid"><div><canvas id="dC" class="plot" role="img" aria-label="Diagram konstelasi I-Q"></canvas><p class="legend">Lingkaran: posisi ideal beserta bit-nya. Titik: simbol yang diterima. Garis putus: batas keputusan. Titik yang melewati garis menghasilkan bit salah.</p></div>
+<div><canvas id="dB" class="plot" role="img" aria-label="Kurva BER terhadap Eb/N0"></canvas><p class="legend">Garis: BER teori. Titik: hasil simulasi pada Eb/N0 yang dipilih (lingkaran kosong berarti 0 kesalahan, nilai sebenarnya di bawah 1/jumlah bit).</p></div></div>
+<table style="margin-top:12px"><tbody id="dOut"></tbody></table></div>
+<div class="card"><h3>Enam skenario BER otomatis</h3>
+<p>QPSK dan 16-QAM dijalankan pada tiga kondisi: tanpa derau, derau sedang, dan derau tinggi. Keenamnya memakai deretan bit yang sama. Derau dibangkitkan oleh generator Gauss pada simulasi; tidak ada angka BER yang ditulis tangan.</p>
+<div class="ctl"><label>Pesan teks<input type="text" id="d6Msg" value="SISTEM TELEKOMUNIKASI" maxlength="24"></label>
+<label>Jumlah bit<select id="d6N"><option value="10000">10.000</option><option value="100000" selected>100.000</option></select></label>
+<label>Benih acak<input type="number" id="d6Seed" value="2026" step="1"></label>
+<label>Eb/N0 derau sedang <output id="d6MV"></output><input type="range" id="d6M" min="3" max="12" step="0.5" value="6"></label>
+<label>Eb/N0 derau tinggi <output id="d6HV"></output><input type="range" id="d6H" min="-2" max="4" step="0.5" value="2"></label>
+<button type="button" id="d6Go">Jalankan 6 skenario</button></div>
+<p class="legend" id="d6Info"></p>
+<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Modulasi</th><th>Kondisi</th><th>Parameter derau</th><th>Bit</th><th>Bit error</th><th>BER aktual</th><th>BER teori</th><th>Pesan diterima</th><th>Pemeriksaan</th></tr></thead><tbody id="d6T"></tbody></table></div></div>
+</section>
+
+<section id="E" role="tabpanel" hidden>
+  <div class="card">
+    <h2>Blok RF dan konversi frekuensi</h2>
+    <p>Oscillator/LO, mixer, filter, PA, LNA, ADC, dan DAC pada jalur kirim dan terima.</p>
+  </div>
+  <div class="card"><h3>Diagram blok RF</h3>
+<p>Klik sebuah blok untuk membaca fungsinya.</p>
+<div class="ctl"><label>Arsitektur<select id="eArch"><option value="sh">Superheterodyne</option><option value="dc">Direct conversion (zero-IF)</option></select></label>
+<label>f RF <output id="eRV"></output><input type="range" id="eR" min="400" max="6000" step="10" value="2400"></label>
+<label>f IF <output id="eIV"></output><input type="range" id="eI" min="20" max="500" step="10" value="100"></label></div>
+<div class="rowlbl">Pemancar (up-conversion)</div><div class="blocks" id="eTx"></div>
+<div class="rowlbl">Penerima (down-conversion)</div><div class="blocks" id="eRx"></div>
+<p id="eDesc" style="margin-top:10px"></p></div>
+<div class="card"><h3>Frekuensi di sekitar mixer</h3>
+<canvas id="eF" class="plot" role="img" aria-label="Letak f IF, f LO, frekuensi citra, dan f RF"></canvas>
+<table style="margin-top:10px"><tbody id="eT"></tbody></table></div>
+<div class="card"><h3>Ringkasan konversi frekuensi</h3><div style="overflow-x:auto"><table><thead><tr><th>Istilah</th><th>Penjelasan</th></tr></thead><tbody>
+<tr><td>Up-conversion</td><td>Menaikkan frekuensi sinyal IF atau baseband ke frekuensi RF dengan mixer dan LO: f_RF = f_LO + f_IF. Dipakai di pemancar.</td></tr>
+<tr><td>Down-conversion</td><td>Menurunkan frekuensi RF ke IF atau baseband: f_IF = f_RF − f_LO. Dipakai di penerima.</td></tr>
+<tr><td>Superheterodyne</td><td>Penerima dua tahap: RF diturunkan ke IF tetap, difilter, lalu diturunkan lagi atau didigitalkan. Selektivitas baik berkat filter IF, tetapi perlu filter citra dan lebih banyak komponen.</td></tr>
+<tr><td>Direct conversion</td><td>RF langsung ke baseband dengan LO = f_RF dan mixer I/Q, tanpa IF. Sederhana dan mudah diintegrasikan, tetapi rentan DC offset, I/Q imbalance, dan kebocoran LO.</td></tr>
+<tr><td>SDR (Software Defined Radio)</td><td>Radio yang fungsi pemrosesan sinyalnya (modulasi, demodulasi, filter digital, coding) dijalankan oleh perangkat lunak pada sampel digital I/Q, bukan oleh rangkaian analog khusus. Mengganti program sudah cukup untuk berpindah dari FM ke QPSK atau 16-QAM. Bagian RF di ujung antena tetap berupa perangkat keras.</td></tr></tbody></table></div>
+<h3 style="margin-top:16px">Contoh perangkat keras SDR dan yang tetap dibutuhkan</h3>
+<div style="overflow-x:auto"><table><thead><tr><th>Perangkat</th><th>Kemampuan kasar</th><th>Catatan</th></tr></thead><tbody>
+<tr><td>RTL-SDR</td><td>Hanya menerima, sekitar 24 sampai 1700 MHz, ADC 8 bit, bandwidth sekitar 2 MHz</td><td>Murah, cocok untuk belajar menerima FM, ADS-B, dan sinyal lemah</td></tr>
+<tr><td>HackRF One</td><td>Menerima dan memancar (half-duplex), sekitar 1 MHz sampai 6 GHz, bandwidth hingga 20 MHz, 8 bit</td><td>Terjangkau, dipakai untuk eksperimen dan analisis protokol</td></tr>
+<tr><td>USRP (Ettus), mis. B200/B210</td><td>Sekitar 70 MHz sampai 6 GHz, bandwidth hingga sekitar 56 MHz, ADC/DAC 12 bit, full-duplex</td><td>Dipakai untuk riset dan prototipe, terhubung ke GNU Radio atau MATLAB</td></tr></tbody></table></div>
+<p style="margin-top:10px">Meski pemrosesannya berupa perangkat lunak, SDR tetap membutuhkan perangkat keras berikut: antena, filter RF (BPF), LNA di sisi terima dan PA di sisi pancar, mixer dengan LO (front-end RF atau chip transceiver, banyak yang berarsitektur direct conversion atau low-IF), serta ADC dan DAC. Laju sampling ADC/DAC membatasi bandwidth sesaat yang bisa ditangani (syarat Nyquist, seperti di Tab C). Perangkat ini juga butuh clock referensi dan antarmuka ke komputer (USB atau Ethernet). Perangkat lunak seperti GNU Radio mengambil alih sisanya.</p></div>
+</section>
+
+<section id="F" role="tabpanel" hidden>
+  <div class="card">
+    <h2>Antena dan link budget</h2>
+    <p>Apakah daya yang sampai ke penerima cukup untuk link berjalan?</p>
+  </div>
+  <div class="card"><h3>Parameter link budget</h3>
+<p>FSPL = 32,44 + 20·log₁₀(f MHz) + 20·log₁₀(d km)</p>
+<div class="ctl"><label>Ptx <output id="fPV"></output><input type="range" id="fP" min="0" max="50" step="0.5" value="30"></label>
+<label>Gain antena Tx <output id="fGtV"></output><input type="range" id="fGt" min="0" max="40" step="0.5" value="12"></label>
+<label>Rugi kabel Tx (Lt) <output id="fLtV"></output><input type="range" id="fLt" min="0" max="10" step="0.5" value="2"></label>
+<label>Frekuensi <output id="fFV"></output><input type="range" id="fF" min="100" max="6000" step="10" value="2400"></label>
+<label>Jarak <output id="fDV"></output><input type="range" id="fD" min="-1" max="2" step="0.01" value="0.7"></label>
+<label>Gain antena Rx <output id="fGrV"></output><input type="range" id="fGr" min="0" max="40" step="0.5" value="12"></label>
+<label>Rugi kabel Rx (Lr) <output id="fLrV"></output><input type="range" id="fLr" min="0" max="10" step="0.5" value="1"></label>
+<label>Loss lain (konektor, polarisasi, dll.) <output id="fLmV"></output><input type="range" id="fLm" min="0" max="20" step="0.5" value="1"></label>
+<label>Sensitivitas Rx <output id="fSV"></output><input type="range" id="fS" min="-120" max="-40" step="1" value="-90"></label>
+<label>Target margin minimum <output id="fMmV"></output><input type="range" id="fMm" min="0" max="30" step="0.5" value="10"></label></div>
+<div style="overflow-x:auto"><table><thead><tr><th>Besaran</th><th>Perhitungan</th><th>Hasil</th></tr></thead><tbody id="fOut"></tbody></table></div></div>
+<div class="card"><h3>Perbandingan kondisi awal dan setelah perubahan</h3>
+<p>Simpan kondisi awal, pilih satu parameter yang akan diubah, lalu geser slider parameter itu pada panel di atas. Parameter lainnya dikunci agar perbandingan adil.</p>
+<div class="ctl"><label>Parameter yang diubah<select id="fcP"><option value="fP">Ptx (dBm)</option><option value="fGt">Gain antena Tx (dBi)</option><option value="fLt">Rugi kabel Tx (dB)</option><option value="fF">Frekuensi (MHz)</option><option value="fD" selected>Jarak (km)</option><option value="fGr">Gain antena Rx (dBi)</option><option value="fLr">Rugi kabel Rx (dB)</option><option value="fLm">Loss lain (dB)</option><option value="fS">Sensitivitas Rx (dBm)</option><option value="fMm">Target margin minimum (dB)</option></select></label>
+<button type="button" id="fcSave">Simpan kondisi awal</button><button type="button" id="fcClear">Hapus kondisi awal</button></div>
+<p class="legend" id="fcInfo"></p>
+<div id="fcWrap" hidden style="overflow-x:auto"><table><thead><tr><th>Besaran</th><th>Kondisi awal</th><th>Kondisi sekarang</th><th>Perubahan</th></tr></thead><tbody id="fcT"></tbody></table></div></div>
+<div class="card"><h3>Daya terima terhadap jarak</h3>
+<canvas id="fL" class="plot" role="img" aria-label="Daya terima terhadap jarak"></canvas>
+<p class="legend">Garis biru: Prx. Garis putus jingga: sensitivitas penerima. Link layak selama kurva berada di atas garis jingga.</p></div>
+<div class="card"><h3>Polarisasi antena dan pola radiasi</h3>
+<p><b>Polarisasi</b> adalah orientasi medan listrik gelombang (linear vertikal atau horizontal, atau sirkular). Antena pemancar dan penerima sebaiknya berpolarisasi sama. Jika dua antena linear berselisih sudut θ, daya yang tertangkap turun sekitar −20·log₁₀|cos θ| dB: kira-kira 3 dB pada 45° dan sangat besar mendekati 90° (cross-polarization). Pasangan linear dan sirkular kehilangan sekitar 3 dB. Rugi ini tidak dihitung otomatis; tambahkan ke "Loss lain".</p>
+<p><b>Pola radiasi</b> menunjukkan gain antena di tiap arah. Gain dBi pada parameter di atas berlaku di arah utama (main lobe). Antena direksional (Yagi, panel, parabola) bergain tinggi dengan berkas sempit, sehingga salah arah beberapa derajat saja bisa menurunkan daya terima. Antena omnidirectional bergain rendah tetapi menjangkau semua arah horizontal. Side lobe dan back lobe menangkap interferensi dan pantulan (multipath), sehingga kualitas link bisa turun meski level dayanya cukup.</p></div>
+<div class="card"><h3>Pencocokan impedansi dan VSWR</h3>
+<p>Γ = (Z_L − Z₀)/(Z_L + Z₀), VSWR = (1 + |Γ|)/(1 − |Γ|), dengan Z₀ = 50 Ω.</p>
+<div class="ctl"><label>Resistansi beban R_L <output id="fRV"></output><input type="range" id="fR" min="5" max="500" step="1" value="100"></label>
+<label>Reaktansi beban X_L <output id="fXV"></output><input type="range" id="fX" min="-100" max="100" step="1" value="0"></label></div>
+<canvas id="fV" class="plot" role="img" aria-label="VSWR terhadap resistansi beban"></canvas>
+<p class="legend">Kurva VSWR terhadap R_L pada X_L terpilih. Area hijau: VSWR ≤ 2 (umumnya dianggap cocok). Titik jingga: beban Anda.</p>
+<table style="margin-top:10px"><tbody id="fVt"></tbody></table></div>
+</section>
+
+<div class="card">
+  <h3>Uji pustaka DSP</h3>
+  <p>Setiap fungsi dibandingkan dengan nilai yang diketahui, dihitung ulang saat halaman dibuka.</p>
+  <table><thead><tr><th>Uji</th><th>Hasil</th><th>Status</th></tr></thead><tbody id="tests"></tbody></table>
+</div>
+</div>
+
+<script>
+/* Navigasi tab fail-safe: berdiri sendiri, tetap jalan walau skrip utama bermasalah */
+document.addEventListener('DOMContentLoaded',function(){
+  var tabs=Array.prototype.slice.call(document.querySelectorAll('nav button[data-t]'));
+  var panels=Array.prototype.slice.call(document.querySelectorAll('section[role="tabpanel"]'));
+  var ids=panels.map(function(p){return p.id;});
+  window.__show=function(id){
+    if(ids.indexOf(id)<0)id='A';
+    panels.forEach(function(p){var on=p.id===id;p.hidden=!on;p.style.display=on?'block':'none';});
+    tabs.forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-t')===id?'true':'false');});
+    try{if(window.__renders&&window.__renders[id])window.__renders[id]();}catch(e){console.error('Gagal merender tab '+id,e);}
+  };
+  tabs.forEach(function(b){b.addEventListener('click',function(){var id=b.getAttribute('data-t');window.__show(id);try{history.replaceState(null,'','#'+id);}catch(e){}});});
+  window.addEventListener('hashchange',function(){window.__show(location.hash.slice(1));});
+  window.__show(location.hash.slice(1));
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+/* ============ 1. UTIL ============ */
+const Util = {
+  randn(){ let u=0,v=0; while(!u) u=Math.random(); v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); },
+  dB2lin:x=>Math.pow(10,x/10),
+  lin2dB:x=>10*Math.log10(x),
+  dBm2mW:x=>Math.pow(10,x/10),
+  mW2dBm:x=>10*Math.log10(x),
+  erfc(x){ // Abramowitz-Stegun 7.1.26 (galat < 1,5e-7)
+    const z=Math.abs(x), t=1/(1+0.3275911*z);
+    const y=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))))*Math.exp(-z*z);
+    return x>=0? y : 2-y;
+  },
+  Q(x){ return 0.5*Util.erfc(x/Math.SQRT2); },
+  fft(re,im){ // radix-2 in-place; panjang harus pangkat 2
+    const n=re.length;
+    for(let i=1,j=0;i<n;i++){ let b=n>>1; for(;j&b;b>>=1) j^=b; j^=b;
+      if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; } }
+    for(let len=2;len<=n;len<<=1){
+      const ang=-2*Math.PI/len, wr=Math.cos(ang), wi=Math.sin(ang);
+      for(let i=0;i<n;i+=len){ let cr=1,ci=0;
+        for(let k=0;k<len/2;k++){
+          const a=i+k, b=i+k+len/2;
+          const xr=re[b]*cr-im[b]*ci, xi=re[b]*ci+im[b]*cr;
+          re[b]=re[a]-xr; im[b]=im[a]-xi; re[a]+=xr; im[a]+=xi;
+          const t=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=t;
+        } } }
+    return {re,im};
+  }
+};
+
+/* ============ 2. MODULASI (Gray, energi simbol rata-rata = 1) ============ */
+const MOD = {
+  QPSK:{bps:2, lv:[1], k:1/Math.SQRT2},
+  "16QAM":{bps:4, lv:[-3,-1,1,3], k:1/Math.sqrt(10)}
+};
+const G16=[-3,-1,3,1]; // indeks dari bit (b1b0): 00→-3, 01→-1, 10→+3, 11→+1 (Gray)
+function mapBits(bits, type){
+  const m=MOD[type], out=[];
+  if(type==="QPSK"){
+    for(let i=0;i<bits.length;i+=2) out.push({I:(bits[i]?-1:1)*m.k, Q:(bits[i+1]?-1:1)*m.k});
+  } else {
+    for(let i=0;i<bits.length;i+=4)
+      out.push({I:G16[bits[i]*2+bits[i+1]]*m.k, Q:G16[bits[i+2]*2+bits[i+3]]*m.k});
+  }
+  return out;
+}
+/* ============ 3. CHANNEL ============ */
+function addAWGN(sym, EbN0dB, bps){
+  const N0=(1/bps)/Util.dB2lin(EbN0dB), s=Math.sqrt(N0/2);
+  return sym.map(p=>({I:p.I+s*Util.randn(), Q:p.Q+s*Util.randn()}));
+}
+/* ============ 4. DEMOD & BER ============ */
+function demapSymbols(sym, type){
+  const m=MOD[type], bits=[];
+  if(type==="QPSK"){ for(const p of sym) bits.push(p.I<0?1:0, p.Q<0?1:0); }
+  else {
+    const dec=v=>{ v/=m.k; const l=v<-2?-3:v<0?-1:v<2?1:3; const i=G16.indexOf(l); return [i>>1, i&1]; };
+    for(const p of sym) bits.push(...dec(p.I), ...dec(p.Q));
+  }
+  return bits;
+}
+function hitungBER(tx, rx){ let e=0; for(let i=0;i<tx.length;i++) if(tx[i]!==rx[i]) e++; return {errors:e, ber:e/tx.length}; }
+function berTeori(type, EbN0dB){ const g=Util.dB2lin(EbN0dB);
+  return type==="QPSK" ? Util.Q(Math.sqrt(2*g)) : 0.75*Util.Q(Math.sqrt(0.8*g)); }
+function simulasiBER(type, EbN0dB, nBits=100000){
+  const bps=MOD[type].bps; nBits-=nBits%bps;
+  const tx=Array.from({length:nBits},()=>Math.random()<0.5?1:0);
+  const rx=demapSymbols(addAWGN(mapBits(tx,type),EbN0dB,bps),type);
+  return {nBits, ...hitungBER(tx,rx)};
+}
+/* ============ 5. LINK ============ */
+const Link = {
+  fspl:(dKm,fMHz)=>20*Math.log10(dKm)+20*Math.log10(fMHz)+32.44,
+  eirp:(ptxDbm,gtxDbi,lossDb)=>ptxDbm+gtxDbi-lossDb,
+  prx:(eirpDbm,fsplDb,grxDbi,lossDb=0)=>eirpDbm-fsplDb+grxDbi-lossDb,
+  margin:(prxDbm,sensDbm)=>prxDbm-sensDbm,
+  gamma:(zl,z0=50)=>(zl-z0)/(zl+z0),
+  vswr(zl,z0=50){ const g=Math.abs(Link.gamma(zl,z0)); return g>=1?Infinity:(1+g)/(1-g); }
+};
+
+/* ============ 6. RENDER (diisi mulai Langkah 2) ============ */
+/* ---- Bagian D: konstelasi, derau, BER ---- */
+const D=(()=>{
+  const $=id=>document.getElementById(id);
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const st={tx:null,sym:null,nI:null,nQ:null,type:null,n:0};
+  function prep(c){const d=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w)return null;c.width=Math.round(w*d);c.height=Math.round(h*d);const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.font='12px '+css('--sans');return{x,w,h};}
+  function fresh(){
+    const type=$('dMod').value,bps=MOD[type].bps,n=+$('dN').value,nb=n-n%bps;
+    st.type=type;st.n=nb;
+    st.tx=Array.from({length:nb},()=>Math.random()<0.5?1:0);
+    st.sym=mapBits(st.tx,type);
+    st.nI=st.sym.map(()=>Util.randn());st.nQ=st.sym.map(()=>Util.randn());
+  }
+  function compute(){
+    const type=st.type,bps=MOD[type].bps,e=+$('dSnr').value;
+    const s=Math.sqrt((1/bps)/Util.dB2lin(e)/2);
+    const rx=st.sym.map((p,i)=>({I:p.I+s*st.nI[i],Q:p.Q+s*st.nQ[i]}));
+    return {rx,e,bps,...hitungBER(st.tx,demapSymbols(rx,type))};
+  }
+  function drawConst(res){
+    const c=prep($('dC'));if(!c)return;const {x,w,h}=c,R=1.5;
+    const px=v=>(v+R)/(2*R)*w,py=v=>h-(v+R)/(2*R)*h,k=MOD[st.type].k;
+    x.clearRect(0,0,w,h);
+    x.strokeStyle=css('--line');x.lineWidth=1;x.setLineDash([5,4]);
+    const bnd=st.type==='QPSK'?[0]:[-2*k,0,2*k];
+    for(const b of bnd){x.beginPath();x.moveTo(px(b),0);x.lineTo(px(b),h);x.moveTo(0,py(b));x.lineTo(w,py(b));x.stroke();}
+    x.setLineDash([]);x.fillStyle=css('--muted');x.fillText('I',w-12,py(0)-6);x.fillText('Q',px(0)+6,12);
+    x.fillStyle=css('--signal');x.globalAlpha=0.35;
+    const m=Math.min(res.rx.length,4000),step=res.rx.length/m;
+    for(let i=0;i<m;i++){const p=res.rx[Math.floor(i*step)];x.beginPath();x.arc(px(p.I),py(p.Q),2,0,6.2832);x.fill();}
+    x.globalAlpha=1;
+    const lv=(st.type==='QPSK'?[-1,1]:[-3,-1,1,3]).map(v=>v*k);
+    x.strokeStyle=css('--ink');x.fillStyle=css('--ink');x.lineWidth=1.5;
+    for(const a of lv)for(const b of lv){
+      x.beginPath();x.arc(px(a),py(b),6,0,6.2832);x.stroke();
+      const bits=demapSymbols([{I:a,Q:b}],st.type).join('');
+      x.lineWidth=3;x.strokeStyle=css('--surface');x.strokeText(bits,px(a)+9,py(b)-10);x.fillText(bits,px(a)+9,py(b)-10);x.lineWidth=1.5;x.strokeStyle=css('--ink');
+    }
+  }
+  function drawBER(res){
+    const c=prep($('dB'));if(!c)return;const {x,w,h}=c,l=46,b=32,t=12,r=12,pw=w-l-r,ph=h-t-b;
+    const X=e=>l+e/20*pw,Y=v=>t+(-Math.log10(v))/6*ph;
+    x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');
+    for(let d=0;d<=6;d++){x.beginPath();x.moveTo(l,t+d/6*ph);x.lineTo(l+pw,t+d/6*ph);x.stroke();x.fillText('1e-'+d,4,t+d/6*ph+4);}
+    for(let e=0;e<=20;e+=5){x.beginPath();x.moveTo(X(e),t);x.lineTo(X(e),t+ph);x.stroke();x.fillText(e,X(e)-4,h-16);}
+    x.fillText('Eb/N0 (dB)',l+pw/2-28,h-3);x.fillText('BER',4,10);
+    for(const type of ['QPSK','16QAM']){
+      const on=type===st.type;x.strokeStyle=on?css('--signal'):css('--muted');x.lineWidth=on?2.5:1.5;x.beginPath();let s=false;
+      for(let e=0;e<=20;e+=0.25){const v=berTeori(type,e);if(v<1e-6)break;if(!s){x.moveTo(X(e),Y(v));s=true}else x.lineTo(X(e),Y(v));}
+      x.stroke();
+      x.fillStyle=on?css('--signal'):css('--muted');
+      x.fillText(type==='QPSK'?'QPSK':'16-QAM',type==='QPSK'?X(11.5):X(14.5),type==='QPSK'?Y(berTeori('QPSK',11.5))-6:Y(berTeori('16QAM',14.5))-6);
+    }
+    const zero=res.errors===0,v=zero?0.5/st.n:res.ber;
+    x.strokeStyle=css('--noise');x.fillStyle=css('--noise');x.lineWidth=2;x.beginPath();x.arc(X(res.e),Y(Math.max(v,1e-6)),5,0,6.2832);
+    zero?x.stroke():x.fill();
+  }
+  function render(){
+    if(document.getElementById('D').hidden)return;
+    if(!st.tx)fresh();
+    const res=compute(),th=berTeori(st.type,res.e);
+    $('dSnrV').textContent=res.e+' dB';
+    drawConst(res);drawBER(res);
+    const f=v=>v.toLocaleString('id-ID'),ex=v=>v===0?'0':v.toExponential(2).replace('.',',');
+    $('dOut').innerHTML=[
+      ['Bit dikirim',f(st.n)],['Simbol dikirim',f(st.n/res.bps)],['Bit salah',f(res.errors)],
+      ['BER simulasi',ex(res.ber)],['BER teori',ex(th)],['Es/N0',(res.e+10*Math.log10(res.bps)).toFixed(1).replace('.',',')+' dB']
+    ].map(([a,b])=>`<tr><td>${a}</td><td class="n">${b}</td></tr>`).join('');
+  }
+  $('dSnr').addEventListener('input',render);
+  $('dMod').addEventListener('change',()=>{fresh();render();});
+  $('dN').addEventListener('change',()=>{fresh();render();});
+  $('dRe').addEventListener('click',()=>{fresh();render();});
+  $('themeBtn').addEventListener('click',()=>setTimeout(render,0));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+  window.addEventListener('resize',render);
+  return {render};
+})();
+/* ---- Bagian C: pemetaan, modulasi, sampling & kuantisasi ---- */
+const C=(()=>{
+  const $=id=>document.getElementById(id);
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const prep=c=>{const d=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w)return null;c.width=Math.round(w*d);c.height=Math.round(h*d);const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.font='12px '+css('--sans');return{x,w,h};};
+  const f3=v=>v.toFixed(3).replace('.',','),T=Math.PI*2;
+  function mapping(){
+    const type=$('cMod').value,bps=MOD[type].bps,k=MOD[type].k;
+    let bits=$('cBits').value.replace(/[^01]/g,'').split('').filter(Boolean).map(Number);
+    const extra=bits.length%bps;if(extra)bits=bits.slice(0,bits.length-extra);
+    const sym=mapBits(bits,type),shown=sym.slice(0,16);
+    $('cMapT').innerHTML=shown.map((p,i)=>{const g=bits.slice(i*bps,i*bps+bps).join(''),ph=(Math.atan2(p.Q,p.I)*180/Math.PI+360)%360;return `<tr><td>${i+1}</td><td class='n'>${g}</td><td class='n'>${f3(p.I)}</td><td class='n'>${f3(p.Q)}</td><td class='n'>${ph.toFixed(0)}°</td></tr>`;}).join('')||`<tr><td colspan='5'>Masukkan minimal ${bps} bit (hanya 0 dan 1).</td></tr>`;
+    $('cMapN').textContent=bits.length+' bit → '+sym.length+' simbol ('+bps+' bit/simbol)'+(sym.length>16?'; 16 simbol pertama ditampilkan':'')+(extra?'; '+extra+' bit sisa dibuang':'')+'.';
+    const c=prep($('cK'));if(!c)return;const {x,w,h}=c,R=1.2;
+    const px=v=>(v+R)/(2*R)*w,py=v=>h-(v+R)/(2*R)*h;
+    x.clearRect(0,0,w,h);x.strokeStyle=css('--line');x.lineWidth=1;x.beginPath();x.moveTo(px(0),0);x.lineTo(px(0),h);x.moveTo(0,py(0));x.lineTo(w,py(0));x.stroke();
+    x.fillStyle=css('--muted');x.fillText('I',w-12,py(0)-6);x.fillText('Q',px(0)+6,12);
+    const lv=(type==='QPSK'?[-1,1]:[-3,-1,1,3]).map(v=>v*k);x.strokeStyle=css('--muted');
+    for(const a of lv)for(const b of lv){x.beginPath();x.arc(px(a),py(b),5,0,T);x.stroke();x.textAlign='center';x.fillStyle=css('--muted');x.fillText(demapSymbols([{I:a,Q:b}],type).join(''),px(a),py(b)+22);x.textAlign='left';}
+    const grp={};shown.forEach((p,i)=>{const key=p.I.toFixed(4)+','+p.Q.toFixed(4);(grp[key]=grp[key]||{p:p,n:[]}).n.push(i+1);});
+    x.font='600 12px '+css('--sans');
+    Object.keys(grp).forEach(key=>{const g=grp[key],cx=px(g.p.I),cy=py(g.p.Q);
+      x.fillStyle=css('--signal');x.beginPath();x.arc(cx,cy,6,0,T);x.fill();
+      const s=g.n.join(', '),tw=x.measureText(s).width,tx=cx+9+tw>w-4?cx-9-tw:cx+9,ty=cy-10;
+      x.lineWidth=3;x.strokeStyle=css('--surface');x.strokeText(s,tx,ty);x.fillStyle=css('--ink');x.fillText(s,tx,ty);});
+    x.lineWidth=1;x.font='12px '+css('--sans');
+  }
+  const BITS=[1,0,1,1,0,0,1,0];
+  function wave(){
+    const c=prep($('cW'));if(!c)return;const {x,w,h}=c,s=$('cSch').value,dig=s==='ASK'||s==='FSK'||s==='BPSK';
+    x.clearRect(0,0,w,h);x.strokeStyle=css('--line');x.lineWidth=1;x.setLineDash([4,4]);
+    if(dig)for(let i=0;i<=8;i++){x.beginPath();x.moveTo(i/8*w,0);x.lineTo(i/8*w,h);x.stroke();}
+    x.beginPath();x.moveTo(0,h/2);x.lineTo(w,h/2);x.stroke();x.setLineDash([]);
+    const y1=h*0.25,a1=h*0.17,y2=h*0.75,a2=h*0.2,mp=[],yp=[];let ph=0;
+    for(let i=0;i<=w;i++){const t=i/w,b=BITS[Math.min(7,Math.floor(t*8))],m=Math.sin(T*2*t);let y,g;
+      if(s==='AM'){g=m;y=(1+0.7*m)/1.7*Math.cos(T*30*t);}
+      else if(s==='FM'){g=m;y=Math.cos(T*30*t-5*Math.cos(T*2*t));}
+      else{g=b?1:-1;if(s==='ASK')y=b*Math.cos(T*32*t);else if(s==='BPSK')y=g*Math.cos(T*32*t);else{ph+=T*(b?48:24)/w;y=Math.cos(ph);}}
+      mp.push(y1-g*a1);yp.push(y2-y*a2);}
+    const line=(arr,col,lw)=>{x.strokeStyle=col;x.lineWidth=lw;x.beginPath();arr.forEach((v,i)=>i?x.lineTo(i,v):x.moveTo(i,v));x.stroke();};
+    line(mp,css('--ink'),1.8);line(yp,css('--signal'),1.3);
+    x.fillStyle=css('--muted');x.fillText('Pesan',6,h/2-6);x.fillText('Termodulasi',6,h-6);
+    if(dig)BITS.forEach((b,i)=>x.fillText(String(b),(i+0.5)/8*w-3,12));
+  }
+  function samp(){
+    const fm=+$('cFm').value,fs=+$('cFs').value,n=+$('cN').value,L=2**n,dl=2/L;
+    $('cFmV').textContent=fm+' Hz';$('cFsV').textContent=fs+' Hz';$('cNV').textContent=n;
+    const q=v=>{let k=Math.floor(v/dl);k=Math.max(-L/2,Math.min(L/2-1,k));return(k+0.5)*dl;};
+    const s=t=>Math.sin(T*fm*t);
+    const c=prep($('cS'));
+    if(c){const {x,w,h}=c,X=t=>t*w,Y=v=>h/2-v*h*0.42;
+      x.clearRect(0,0,w,h);x.strokeStyle=css('--line');x.lineWidth=1;x.setLineDash([2,4]);
+      for(let k=-L/2;k<=L/2;k++){const y=Y(k*dl);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();}
+      x.setLineDash([]);x.strokeStyle=css('--signal');x.lineWidth=2;x.beginPath();
+      for(let i=0;i<=w;i++){const t=i/w;i?x.lineTo(i,Y(s(t))):x.moveTo(i,Y(s(t)));}x.stroke();
+      const ts=[];for(let k=0;k/fs<=1+1e-9;k++)ts.push(k/fs);
+      x.strokeStyle=css('--noise');x.lineWidth=1.5;x.beginPath();
+      ts.forEach((t,i)=>{const v=Y(q(s(t)));if(!i)x.moveTo(X(t),v);else x.lineTo(X(t),v);x.lineTo(X(i+1<ts.length?ts[i+1]:1),v);});x.stroke();
+      ts.forEach(t=>{x.strokeStyle=css('--ink');x.lineWidth=1.2;x.beginPath();x.arc(X(t),Y(s(t)),3.5,0,T);x.stroke();x.fillStyle=css('--noise');x.beginPath();x.arc(X(t),Y(q(s(t))),3,0,T);x.fill();});
+    }
+    let ps=0,pe=0;for(let i=0;i<4000;i++){const v=Math.sin(T*i*0.6180339);ps+=v*v;pe+=(v-q(v))**2;}
+    const fa=Math.abs(fm-Math.round(fm/fs)*fs),ok=fs>=2*fm,d=v=>v.toFixed(2).replace('.',',');
+    $('cQOut').innerHTML=[
+      ['Jumlah level (2^n)',L,''],['Lebar langkah Δ',f3(dl)+' (rentang −1 sampai +1)',''],
+      ['SQNR hasil hitung',d(10*Math.log10(ps/pe))+' dB',''],['SQNR teori (6,02n + 1,76)',d(6.02*n+1.76)+' dB',''],
+      ['Laju bit (fs × n)',fs*n+' bit/s',''],
+      ['Syarat Nyquist (fs ≥ 2·fm)',ok?'Terpenuhi ('+fs+' ≥ '+2*fm+' Hz)':'Tidak terpenuhi: terbaca sebagai '+fa.toFixed(1).replace('.',',')+' Hz (aliasing)',ok?'pass':'fail']
+    ].map(([a,b,cl])=>`<tr><td>${a}</td><td class='n ${cl}'>${b}</td></tr>`).join('');
+  }
+  function render(){if(document.getElementById('C').hidden)return;mapping();wave();samp();}
+  ['cMod'].forEach(i=>$(i).addEventListener('change',render));
+  ['cBits','cSch','cFm','cFs','cN'].forEach(i=>$(i).addEventListener('input',render));
+  $('cRnd').addEventListener('click',()=>{$('cBits').value=Array.from({length:16},()=>Math.random()<0.5?1:0).join('');render();});
+  $('themeBtn').addEventListener('click',()=>setTimeout(render,0));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+  window.addEventListener('resize',render);
+  return {render};
+})();
+/* ---- Pustaka tambahan untuk Bagian A, B, E, F ---- */
+const H={$:id=>document.getElementById(id),css:n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim(),T:Math.PI*2,
+  nf:(v,d=2)=>v.toFixed(d).replace('.',','),
+  prep(c){const d=window.devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w)return null;c.width=Math.round(w*d);c.height=Math.round(h*d);const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.font='12px '+H.css('--sans');return{x,w,h};},
+  fmtP(mW){const f=v=>v.toLocaleString('id-ID',{maximumSignificantDigits:4});return mW>=1000?f(mW/1000)+' W':mW>=1?f(mW)+' mW':mW>=1e-3?f(mW*1e3)+' µW':f(mW*1e6)+' nW';},
+  hook(r){matchMedia('(prefers-color-scheme: dark)').addEventListener('change',r);window.addEventListener('resize',r);H.$('themeBtn').addEventListener('click',()=>setTimeout(r,0));}
+};
+Object.assign(Link,{gmag:(R,X=0,Z0=50)=>Math.sqrt(((R-Z0)**2+X*X)/((R+Z0)**2+X*X)),vswrG:g=>g>=1?Infinity:(1+g)/(1-g),rangeKm:(eirp,gr,lm,sens,f)=>Math.pow(10,((eirp+gr-lm-sens)-32.44-20*Math.log10(f))/20)});
+const Spec={N:1024,
+  val(type,f0,t){if(type==='sin')return Math.sin(H.T*f0*t);if(type==='sq')return Math.floor(2*f0*t+1e-9)%2===0?1:-1;const b=Math.floor(f0*t+1e-9);return((Math.imul(b+1,2654435761)>>>15)&1)?1:-1;},
+  power(type,f0){let s=0;for(let i=0;i<Spec.N;i++)s+=Spec.val(type,f0,i/Spec.N)**2;return s/Spec.N;},
+  spectrum(type,f0,ptx){const N=Spec.N,re=[],im=new Array(N).fill(0);for(let i=0;i<N;i++)re.push(Spec.val(type,f0,i/N));Util.fft(re,im);const Ps=Spec.power(type,f0),P=[];
+    for(let k=0;k<=N/2;k++){const p=(re[k]**2+im[k]**2)/(N*N)/Ps*(k>0&&k<N/2?2:1);P.push(ptx+10*Math.log10(Math.max(p,1e-20)));}return{P,Ps};}
+};
+const Mix={plan:(fr,fi)=>({lo:fr-fi,img:fr-2*fi}),
+  peaks(f1,f2){const N=1024,re=[],im=new Array(N).fill(0);for(let i=0;i<N;i++)re.push(Math.cos(H.T*f1*i/N)*Math.cos(H.T*f2*i/N));Util.fft(re,im);const m=[];for(let k=1;k<N/2;k++)m.push([Math.hypot(re[k],im[k]),k]);m.sort((a,b)=>b[0]-a[0]);return[m[0][1],m[1][1]].sort((a,b)=>a-b);}};
+function sendText(txt,eb){
+  const bytes=txt.split('').map(c=>c.charCodeAt(0)).filter(c=>c<128).slice(0,24),bits=[];
+  bytes.forEach(b=>{for(let i=7;i>=0;i--)bits.push((b>>i)&1);});
+  const sym=mapBits(bits,'QPSK'),rx=addAWGN(sym,eb,2),rb=demapSymbols(rx,'QPSK'),out=[];
+  for(let i=0;i<rb.length;i+=8){let v=0;for(let j=0;j<8;j++)v=v*2+rb[i+j];out.push(v);}
+  return{bytes,bits,sym,rx,rb,out:String.fromCharCode(...out),...hitungBER(bits,rb)};
+}
+
+/* ---- Fungsi murni dan modul tambahan (Langkah lanjutan) ---- */
+Link.budget=p=>{const fsp=Link.fspl(p.d,p.f),eirp=Link.eirp(p.P,p.Gt,p.Lt),prx=Link.prx(eirp,fsp,p.Gr,p.Lr+p.Lm),mar=Link.margin(prx,p.S);
+  return{fsp,eirp,prx,mar,status:mar>=p.Mt?'Layak':mar>=0?'Di bawah target margin':'Tidak layak'};};
+const RFS={alpha:0.35,
+  shape(df,B){const Rs=B/(1+RFS.alpha),a=Math.abs(df),f1=(1-RFS.alpha)*Rs/2,f2=(1+RFS.alpha)*Rs/2;if(a<=f1)return 1;if(a>=f2)return 0;return 0.5*(1+Math.cos(Math.PI/(RFS.alpha*Rs)*(a-f1)));},
+  psd(f,fc,B,pMW){return pMW*RFS.shape(f-fc,B)/(B/(1+RFS.alpha));},
+  stats(fc,B,pMW){const lo=fc-B,hi=fc+B,df=0.05,n=Math.round((hi-lo)/df);let tot=0,mom=0;const c=[];
+    for(let i=0;i<=n;i++){const f=lo+i*df,q=RFS.psd(f,fc,B,pMW)*df;tot+=q;mom+=q*f;c.push(tot);}
+    let fl=null,fh=null;for(let i=0;i<=n;i++){const q=c[i]/tot;if(fl===null&&q>=0.005)fl=lo+i*df;if(fh===null&&q>=0.995){fh=lo+i*df;break;}}
+    return{total:tot,centroid:mom/tot,bw99:fh-fl,fl,fh};}};
+function stepInfo(bits,type,i){const bps=MOD[type].bps,k=MOD[type].k,g=bits.slice(i*bps,i*bps+bps),sy=mapBits(g,type)[0];
+  return{group:g.join(''),I:sy.I,Q:sy.Q,levI:Math.round(sy.I/k),levQ:Math.round(sy.Q/k),amp:Math.hypot(sy.I,sy.Q),phase:(Math.atan2(sy.Q,sy.I)*180/Math.PI+360)%360};}
+const Skenario={
+  rng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};},
+  gauss(r){return()=>{let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());};},
+  run(msg,nBits,seed,ebMed,ebHigh){
+    const bytes=msg.split('').map(c=>c.charCodeAt(0)).filter(c=>c<128).slice(0,24),bits=[];
+    bytes.forEach(b=>{for(let i=7;i>=0;i--)bits.push((b>>i)&1);});
+    const nMsg=bits.length,r=Skenario.rng(seed);while(bits.length<nBits)bits.push(r()<0.5?0:1);
+    const src=String.fromCharCode(...bytes),out=[];
+    for(const type of['QPSK','16QAM']){
+      const bps=MOD[type].bps,sym=mapBits(bits,type),g=Skenario.gauss(Skenario.rng(seed+(type==='QPSK'?101:202)));
+      const nI=sym.map(()=>g()),nQ=sym.map(()=>g()),esMeas=sym.reduce((a,q)=>a+q.I*q.I+q.Q*q.Q,0)/sym.length;
+      for(const[lab,eb]of[['Tanpa derau',null],['Derau sedang',ebMed],['Derau tinggi',ebHigh]]){
+        const N0=eb===null?0:(1/bps)/Util.dB2lin(eb),sigma=Math.sqrt(N0/2);
+        const rx=sym.map((q,i)=>({I:q.I+sigma*nI[i],Q:q.Q+sigma*nQ[i]})),rb=demapSymbols(rx,type),e=hitungBER(bits,rb);
+        const chars=[];for(let i=0;i<bytes.length;i++){let v=0;for(let j=0;j<8;j++)v=v*2+rb[i*8+j];chars.push({ch:String.fromCharCode(v),ok:v===bytes[i]});}
+        out.push({type,lab,eb,esN0:eb===null?null:eb+10*Math.log10(bps),N0,sigma,nBits:bits.length,bits,errors:e.errors,ber:e.ber,esMeas,chars,msgOk:chars.every(c=>c.ok),theory:eb===null?null:berTeori(type,eb),src,nMsg});
+      }
+    }
+    return out;}};
+
+/* ---- Tab C: pemrosesan simbol langkah demi langkah ---- */
+const CS=(()=>{
+  const {$,css,nf,T}=H;let idx=0,timer=null,lastKey='';
+  const sg=v=>(v>0?'+':'\u2212')+Math.abs(v);
+  function data(){const type=$('cMod').value,bps=MOD[type].bps;let bits=$('cBits').value.replace(/[^01]/g,'').split('').filter(Boolean).map(Number);bits=bits.slice(0,bits.length-bits.length%bps);return{type,bps,k:MOD[type].k,bits,n:bits.length/bps};}
+  function stop(){if(timer){clearInterval(timer);timer=null;}$('csPlay').textContent='Putar';}
+  function tick(){const q=data();if($('C').hidden||idx>=q.n-1){stop();render();return;}idx++;render();}
+  function render(){
+    if($('C').hidden){stop();return;}
+    const d=data(),key=d.type+'|'+d.bits.join('');
+    if(key!==lastKey){lastKey=key;idx=0;stop();}
+    if(idx>d.n-1)idx=Math.max(0,d.n-1);
+    $('csPrev').disabled=idx<=0;$('csNext').disabled=idx>=d.n-1;$('csPlay').disabled=d.n<1;
+    let bh='';for(let g=0;g<d.n;g++){const q=d.bits.slice(g*d.bps,g*d.bps+d.bps).join('');bh+=(g?' ':'')+(g===idx?"<span class='hl'>"+q+'</span>':q);}
+    $('csBits').innerHTML=d.n?bh:'Masukkan minimal '+d.bps+' bit pada panel di atas.';
+    let sI=null;
+    if(d.n){const s=stepInfo(d.bits,d.type,idx),half=d.bps/2;sI=s;
+      $('csInfo').innerHTML=[['Simbol ke',(idx+1)+' dari '+d.n],['Kelompok bit yang diproses',s.group],
+        ['Bit untuk sumbu I \u2192 level',s.group.slice(0,half)+' \u2192 '+sg(s.levI)],['Bit untuk sumbu Q \u2192 level',s.group.slice(half)+' \u2192 '+sg(s.levQ)],
+        ['I = level \u00d7 '+(d.type==='QPSK'?'1/\u221a2':'1/\u221a10'),sg(s.levI)+' \u00d7 '+nf(d.k,3)+' = '+nf(s.I,3)],['Q = level \u00d7 '+(d.type==='QPSK'?'1/\u221a2':'1/\u221a10'),sg(s.levQ)+' \u00d7 '+nf(d.k,3)+' = '+nf(s.Q,3)],
+        ['Amplitudo \u221a(I\u00b2 + Q\u00b2)',nf(s.amp,3)],['Fase',nf(s.phase,0)+'\u00b0']].map(q=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td></tr>`).join('');
+    }else $('csInfo').innerHTML='';
+    const c=H.prep($('csK'));if(!c)return;const {x,w,h}=c,R=1.2,px=v=>(v+R)/(2*R)*w,py=v=>h-(v+R)/(2*R)*h;
+    x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.beginPath();x.moveTo(px(0),0);x.lineTo(px(0),h);x.moveTo(0,py(0));x.lineTo(w,py(0));x.stroke();
+    x.fillStyle=css('--muted');x.textAlign='left';x.fillText('I',w-12,py(0)-6);x.fillText('Q',px(0)+6,12);
+    const lv=(d.type==='QPSK'?[-1,1]:[-3,-1,1,3]).map(q=>q*d.k);x.strokeStyle=css('--muted');x.textAlign='center';
+    for(const a of lv)for(const b of lv){x.beginPath();x.arc(px(a),py(b),5,0,T);x.stroke();x.fillText(demapSymbols([{I:a,Q:b}],d.type).join(''),px(a),py(b)+22);}
+    x.textAlign='left';
+    for(let i=0;i<idx;i++){const q=stepInfo(d.bits,d.type,i);x.globalAlpha=0.5;x.fillStyle=css('--signal');x.beginPath();x.arc(px(q.I),py(q.Q),4,0,T);x.fill();x.globalAlpha=1;}
+    if(sI){const cx=px(sI.I),cy=py(sI.Q);x.strokeStyle=css('--noise');x.lineWidth=1.5;x.setLineDash([4,3]);x.beginPath();x.moveTo(cx,cy);x.lineTo(cx,py(0));x.moveTo(cx,cy);x.lineTo(px(0),cy);x.stroke();x.setLineDash([]);
+      x.lineWidth=2.5;x.beginPath();x.arc(cx,cy,11,0,T);x.stroke();x.fillStyle=css('--noise');x.beginPath();x.arc(cx,cy,6,0,T);x.fill();
+      x.font='600 12px '+css('--sans');const s='#'+(idx+1)+' ('+nf(sI.I,3)+'; '+nf(sI.Q,3)+')',tw=x.measureText(s).width,tx=cx+14+tw>w-4?cx-14-tw:cx+14;
+      x.lineWidth=3;x.strokeStyle=css('--surface');x.strokeText(s,tx,cy-14);x.fillStyle=css('--ink');x.fillText(s,tx,cy-14);x.lineWidth=1;x.font='12px '+css('--sans');}
+  }
+  $('csPrev').addEventListener('click',()=>{stop();if(idx>0)idx--;render();});
+  $('csNext').addEventListener('click',()=>{stop();const d=data();if(idx<d.n-1)idx++;render();});
+  $('csPlay').addEventListener('click',()=>{if(timer){stop();return;}const d=data();if(!d.n)return;if(idx>=d.n-1)idx=0;timer=setInterval(tick,+$('csSpd').value);$('csPlay').textContent='Jeda';render();});
+  $('csSpd').addEventListener('change',()=>{if(timer){clearInterval(timer);timer=setInterval(tick,+$('csSpd').value);}});
+  $('cMod').addEventListener('change',render);$('cBits').addEventListener('input',render);$('cRnd').addEventListener('click',render);H.hook(render);
+  return{render};
+})();
+
+/* ---- Tab D: enam skenario BER ---- */
+const Six=(()=>{
+  const {$,nf}=H;let lastKey='',tmr=null;
+  const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const ex=v=>v===0?'0':v.toExponential(2).replace('.',',');
+  const san=ch=>{const k=ch.charCodeAt(0);return k<32||k>126?'\u00b7':ch;};
+  function render(force){
+    if($('D').hidden)return;
+    const msg=$('d6Msg').value,n=+$('d6N').value,seed=Math.floor(+$('d6Seed').value)||0,m=+$('d6M').value,hi=+$('d6H').value;
+    $('d6MV').textContent=nf(m,1)+' dB';$('d6HV').textContent=nf(hi,1)+' dB';
+    const key=[msg,n,seed,m,hi].join('|');if(key===lastKey&&!force)return;lastKey=key;
+    const R=Skenario.run(msg,n,seed,m,hi);
+    $('d6Info').textContent='Deretan bit yang sama untuk keenam skenario: '+n.toLocaleString('id-ID')+' bit = '+R[0].nMsg+' bit pesan (ASCII, 8 bit per huruf) + deret pseudo-acak berbenih '+seed+'. Energi simbol rata-rata ternormalisasi Es = 1 (terukur: QPSK '+nf(R[0].esMeas,3)+', 16-QAM '+nf(R[3].esMeas,3)+'). Derau: N0 = Es/(bit per simbol \u00d7 Eb/N0), \u03c3 = \u221a(N0/2) per sumbu I dan Q. Pesan terkirim: \u201c'+esc(R[0].src)+'\u201d.';
+    $('d6T').innerHTML=R.map((r,i)=>{
+      const par=r.eb===null?'Tanpa derau (\u03c3 = 0)':'Eb/N0 = '+nf(r.eb,1)+' dB; Es/N0 = '+nf(r.esN0,1)+' dB; N0 = '+nf(r.N0,3)+'; \u03c3 = '+nf(r.sigma,3);
+      const rxm=r.chars.map(c=>c.ok?esc(san(c.ch)):"<span class='fail'>"+esc(san(c.ch))+'</span>').join('')||'(pesan kosong)';
+      const bad=r.chars.filter(c=>!c.ok).length;
+      const chk=r.eb===null?((r.errors===0&&r.msgOk)?"<span class='pass'>Lolos: BER = 0, pesan sama</span>":"<span class='fail'>Gagal</span>"):'Aktual/teori = '+nf(r.ber/r.theory,2)+'; '+bad+' dari '+r.chars.length+' huruf salah';
+      return `<tr><td>${i+1}</td><td>${r.type==='QPSK'?'QPSK':'16-QAM'}</td><td>${r.lab}</td><td class='n'>${par}</td><td class='n'>${r.nBits.toLocaleString('id-ID')}</td><td class='n'>${r.errors.toLocaleString('id-ID')}</td><td class='n'>${ex(r.ber)}</td><td class='n'>${r.theory===null?'\u2014':ex(r.theory)}</td><td class='n'>${rxm}</td><td>${chk}</td></tr>`;}).join('');
+  }
+  const later=()=>{clearTimeout(tmr);tmr=setTimeout(()=>render(false),200);};
+  ['d6Msg','d6Seed','d6M','d6H'].forEach(i=>$(i).addEventListener('input',later));$('d6N').addEventListener('change',()=>render(false));
+  $('d6Go').addEventListener('click',()=>render(true));H.hook(()=>render(false));
+  return{render:()=>render(false)};
+})();
+
+/* ---- Tab F: perbandingan kondisi awal dan sesudah ---- */
+const FC=(()=>{
+  const {$,nf}=H,v=id=>+$(id).value;
+  const PAR=[['fP','Ptx','dBm'],['fGt','Gain antena Tx','dBi'],['fLt','Rugi kabel Tx (Lt)','dB'],['fF','Frekuensi','MHz'],['fD','Jarak','km'],['fGr','Gain antena Rx','dBi'],['fLr','Rugi kabel Rx (Lr)','dB'],['fLm','Loss lain','dB'],['fS','Sensitivitas Rx','dBm'],['fMm','Target margin minimum','dB']];
+  const ids=PAR.map(q=>q[0]);let base=null,sel=null;
+  const read=()=>{const o={};ids.forEach(id=>o[id]=v(id));return o;};
+  const toP=o=>({P:o.fP,Gt:o.fGt,Lt:o.fLt,f:o.fF,d:Math.pow(10,o.fD),Gr:o.fGr,Lr:o.fLr,Lm:o.fLm,S:o.fS,Mt:o.fMm});
+  const pv=(id,o)=>id==='fD'?Math.pow(10,o[id]):o[id];
+  const lock=on=>{ids.forEach(id=>{$(id).disabled=on&&id!==sel;});$('fcP').disabled=on;};
+  const dl=(y,x)=>{const z=y-x;return(z<0?'\u2212':'+')+nf(Math.abs(z),2);};
+  function render(){
+    if($('F').hidden)return;
+    $('fcSave').disabled=!!base;$('fcClear').disabled=!base;$('fcWrap').hidden=!base;
+    if(!base){$('fcInfo').textContent='Atur parameter sesuai kondisi awal yang diinginkan, pilih parameter yang akan diubah, lalu klik \u201cSimpan kondisi awal\u201d.';return;}
+    const nm=PAR.find(q=>q[0]===sel),cur=read(),a=Link.budget(toP(base)),b=Link.budget(toP(cur)),cl=q=>q==='Layak'?'pass':'fail';
+    $('fcInfo').textContent='Kondisi awal tersimpan. Hanya \u201c'+nm[1]+'\u201d yang bisa diubah; parameter lain dikunci pada nilai awalnya. Klik \u201cHapus kondisi awal\u201d untuk membuka semua slider.';
+    const rows=[[nm[1]+' ('+nm[2]+')',nf(pv(sel,base)),nf(pv(sel,cur)),dl(pv(sel,cur),pv(sel,base)),'',''],
+      ['FSPL (dB)',nf(a.fsp),nf(b.fsp),dl(b.fsp,a.fsp),'',''],['EIRP (dBm)',nf(a.eirp),nf(b.eirp),dl(b.eirp,a.eirp),'',''],
+      ['Daya terima Prx (dBm)',nf(a.prx),nf(b.prx),dl(b.prx,a.prx),'',''],['Margin link (dB)',nf(a.mar),nf(b.mar),dl(b.mar,a.mar),'',''],
+      ['Status kelayakan link',a.status,b.status,a.status===b.status?'Tidak berubah':'Berubah',cl(a.status),cl(b.status)]];
+    $('fcT').innerHTML=rows.map(q=>`<tr><td>${q[0]}</td><td class='n ${q[4]}'>${q[1]}</td><td class='n ${q[5]}'>${q[2]}</td><td class='n'>${q[3]}</td></tr>`).join('');
+  }
+  $('fcSave').addEventListener('click',()=>{sel=$('fcP').value;base=read();lock(true);render();});
+  $('fcClear').addEventListener('click',()=>{base=null;lock(false);sel=null;render();});
+  document.querySelectorAll('#F input').forEach(i=>i.addEventListener('input',render));H.hook(render);
+  return{render};
+})();
+
+/* ---- Tab B: pergeseran frekuensi carrier ---- */
+const BC=(()=>{
+  const {$,css,nf,T}=H;
+  const fmtF=f=>f>=1000?nf(f/1000,3)+' GHz':nf(f,1)+' MHz';
+  const ptxNow=()=>{const w=parseFloat($('bW').value);return w>0?Util.mW2dBm(w*1000):+$('bP').value;};
+  function plot(id,lo,hi,fc,B,p,zoom){
+    const c=H.prep($(id));if(!c)return;const {x,w,h}=c,l=56,b=34,t=14,r=14,pw=w-l-r,ph=h-t-b,pMW=Util.dBm2mW(p),Rs=B/(1+RFS.alpha);
+    const ymax=p+3,ymin=p-80,span=hi-lo,X=f=>l+(f-lo)/span*pw,Y=q=>t+(ymax-Math.max(q,ymin))/(ymax-ymin)*ph;
+    x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');x.textAlign='right';
+    for(let d=0;d<=80;d+=20){const y=Y(p-d);x.beginPath();x.moveTo(l,y);x.lineTo(l+pw,y);x.stroke();x.fillText(nf(p-d,0),l-6,y+4);}
+    x.textAlign='center';
+    const raw=span/6,mag=Math.pow(10,Math.floor(Math.log10(raw))),stp=[1,2,5,10].map(q=>q*mag).find(q=>q>=raw);
+    for(let f=Math.ceil(lo/stp)*stp;f<=hi+1e-9;f+=stp){const xx=X(f);x.beginPath();x.moveTo(xx,t);x.lineTo(xx,t+ph);x.stroke();x.fillText(nf(f,stp<1?1:0),xx,h-18);}
+    x.fillText('Frekuensi (MHz)',l+pw/2,h-4);x.textAlign='left';x.fillText('dBm per MHz',4,10);
+    x.beginPath();x.moveTo(X(lo),Y(ymin));
+    for(let i=0;i<=pw;i++){const f=lo+i/pw*span,q=RFS.psd(f,fc,B,pMW);x.lineTo(l+i,Y(q>0?10*Math.log10(q):ymin));}
+    x.lineTo(l+pw,Y(ymin));x.closePath();x.globalAlpha=0.25;x.fillStyle=css('--signal');x.fill();x.globalAlpha=1;x.strokeStyle=css('--signal');x.lineWidth=2;x.stroke();
+    const pk=p-10*Math.log10(Rs),lab=(txt,xx,yy,al)=>{x.textAlign=al;x.lineWidth=3;x.strokeStyle=css('--surface');x.strokeText(txt,xx,yy);x.fillStyle=css('--ink');x.fillText(txt,xx,yy);};
+    x.lineWidth=1.5;x.strokeStyle=css('--noise');x.setLineDash([5,4]);x.beginPath();x.moveTo(X(fc),t);x.lineTo(X(fc),t+ph);x.stroke();x.setLineDash([]);
+    lab('fc = '+nf(fc,0)+' MHz',X(fc)>w*0.75?X(fc)-6:X(fc)+6,t+12,X(fc)>w*0.75?'right':'left');
+    if(zoom){const ya=Y(pk+9);x.strokeStyle=css('--ink');x.lineWidth=1.5;x.beginPath();x.moveTo(X(fc-B/2),ya);x.lineTo(X(fc+B/2),ya);
+      x.moveTo(X(fc-B/2),ya-5);x.lineTo(X(fc-B/2),ya+5);x.moveTo(X(fc+B/2),ya-5);x.lineTo(X(fc+B/2),ya+5);x.stroke();
+      lab('Bandwidth B = '+nf(B,0)+' MHz',X(fc),ya-8,'center');
+      lab(nf(fc-B/2,0),X(fc-B/2),Y(ymin)-6,'right');lab(nf(fc+B/2,0),X(fc+B/2),Y(ymin)-6,'left');}
+    x.textAlign='left';
+  }
+  function render(){
+    if($('B').hidden)return;
+    const fc=+$('bcC').value,B=+$('bcB').value,p=ptxNow(),pMW=Util.dBm2mW(p),Rs=B/(1+RFS.alpha);
+    $('bcCV').textContent=nf(fc,0)+' MHz ('+nf(fc/1000,3)+' GHz)';$('bcBV').textContent=nf(B,0)+' MHz';
+    plot('bcR',0,6000,fc,B,p,false);plot('bcZ',Math.max(0,fc-1.5*B),fc+1.5*B,fc,B,p,true);
+    const st=RFS.stats(fc,B,pMW);
+    $('bcT').innerHTML=[['Frekuensi carrier fc',fmtF(fc)],['Batas bawah (fc \u2212 B/2)',fmtF(fc-B/2)],['Batas atas (fc + B/2)',fmtF(fc+B/2)],
+      ['Bandwidth B (batas atas \u2212 batas bawah)',nf(B,1)+' MHz'],['Bandwidth 99% daya (dihitung dari spektrum)',nf(st.bw99,1)+' MHz'],
+      ['Pusat spektrum terhitung',fmtF(st.centroid)],['Laju simbol Rs = B/(1 + 0,35)',nf(Rs,1)+' Msimbol/s'],
+      ['Daya total (integral spektrum)',nf(Util.mW2dBm(st.total),2)+' dBm (Ptx = '+nf(p,2)+' dBm)'],['Rapat daya puncak',nf(p-10*Math.log10(Rs),1)+' dBm/MHz']
+    ].map(q=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td></tr>`).join('');
+  }
+  ['bcC','bcB','bP','bW'].forEach(i=>$(i).addEventListener('input',render));H.hook(render);
+  return{render};
+})();
+
+/* ---- Bagian A: alur sistem ---- */
+const A=(()=>{
+  const {$,nf}=H;let sel=0;
+  const ST=[
+    {n:'Source',f:'informasi',d:'Asal pesan: manusia atau mesin yang menghasilkan pesan bermakna (teks, suara, gambar). Belum berupa angka maupun gelombang.'},
+    {n:'Transmitter',f:'data digital, lalu sinyal fisik',d:'Mengubah pesan menjadi bit (coding), memetakan bit ke simbol, memodulasi pembawa, lalu menguatkannya dengan PA untuk dipancarkan.'},
+    {n:'Channel',f:'sinyal fisik',d:'Media perambatan (udara, kabel, serat). Sinyal melemah (path loss) dan bertambah derau serta interferensi.'},
+    {n:'Receiver',f:'sinyal fisik, lalu data digital',d:'Menguatkan sinyal lemah (LNA), menurunkan frekuensi, demodulasi, lalu memutuskan bit. Di sinilah kesalahan bit terjadi.'},
+    {n:'Destination',f:'informasi',d:'Penerima pesan. Informasi utuh hanya jika semua bit diputuskan dengan benar.'}];
+  const san=s=>s.split('').map(ch=>{const k=ch.charCodeAt(0);return k<32||k>126?'·':ch;}).join('');
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const ch=$('aChain');
+  ST.forEach((s,i)=>{if(i){const a=document.createElement('span');a.className='arr';a.textContent='→';ch.appendChild(a);}
+    const b=document.createElement('button');b.type='button';b.className='blk';b.textContent=s.n;b.onclick=()=>{sel=i;render();};ch.appendChild(b);});
+  function render(){
+    if($('A').hidden)return;
+    const eb=+$('aN').value,r=sendText($('aTxt').value,eb);$('aNV').textContent=nf(eb,1)+' dB';
+    [...ch.querySelectorAll('button')].forEach((b,i)=>b.setAttribute('aria-pressed',i===sel));
+    $('aDesc').innerHTML='<b>'+ST[sel].n+'</b> (bentuk pesan: '+ST[sel].f+'). '+ST[sel].d;
+    const grp=a=>{const s=[];for(let i=0;i<Math.min(a.length,32);i+=8)s.push(a.slice(i,i+8).join(''));return s.join(' ')+(a.length>32?' …':'');};
+    let rxh='';for(let i=0;i<Math.min(r.rb.length,32);i++){const bad=r.rb[i]!==r.bits[i];rxh+=(i&&i%8===0?' ':'')+(bad?`<span class='fail'>${r.rb[i]}</span>`:r.rb[i]);}
+    const pr=a=>a.slice(0,3).map(p=>'('+nf(p.I,2)+'; '+nf(p.Q,2)+')').join(' ');
+    const src=String.fromCharCode(...r.bytes),same=r.out===src;
+    const rows=[
+      ['Source','Informasi','Pesan teks: “'+esc(src)+'”'],
+      ['Transmitter','Data digital, lalu sinyal fisik','Bit (ASCII, 8 bit per huruf): '+grp(r.bits)+'<br>Simbol QPSK: '+r.sym.length+' simbol; 3 pertama (I; Q) = '+pr(r.sym)],
+      ['Channel','Sinyal fisik','Eb/N0 = '+nf(eb,1)+' dB. Tiga simbol pertama setelah derau: '+pr(r.rx)],
+      ['Receiver','Sinyal fisik, lalu data digital','Bit hasil keputusan: '+rxh+'<br>Bit salah: '+r.errors+' dari '+r.bits.length],
+      ['Destination','Informasi',(same?"<span class='pass'>Pesan sampai utuh:</span> ":"<span class='fail'>Pesan rusak:</span> ")+'“'+esc(san(r.out))+'”']];
+    $('aT').innerHTML=rows.map((x,i)=>`<tr class='${i===sel?'sel':''}'><td>${x[0]}</td><td>${x[1]}</td><td class='n'>${x[2]}</td></tr>`).join('');
+  }
+  ['aTxt','aN'].forEach(i=>$(i).addEventListener('input',render));$('aGo').addEventListener('click',render);H.hook(render);
+  return{render};
+})();
+
+/* ---- Bagian B: sinyal, spektrum, daya ---- */
+const B=(()=>{
+  const {$,css,nf,fmtP,T}=H;let ptx=30;
+  const g=id=>+$(id).value,sg=v=>(v>=0?'+':'−')+nf(Math.abs(v),1)+' dB';
+  function drawTime(type,f0,p){
+    const c=H.prep($('bT'));if(!c)return;const {x,w,h}=c,l=56,b=24,t=10,r=12,pw=w-l-r,ph=h-t-b;
+    const dur=Math.min(1,type==='nrz'?8/f0:4/f0),Vm=Math.sqrt(Util.dBm2mW(p)/1000*50/Spec.power(type,f0));
+    const Y=v=>t+ph/2-v*ph/2/1.25;
+    x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');
+    for(const v of[1,0,-1]){x.beginPath();x.moveTo(l,Y(v));x.lineTo(l+pw,Y(v));x.stroke();x.fillText(nf(v*Vm,1)+' V',4,Y(v)+4);}
+    for(let i=0;i<=4;i++){const xx=l+i/4*pw;x.beginPath();x.moveTo(xx,t);x.lineTo(xx,t+ph);x.stroke();x.fillText(nf(dur*1000*i/4,1)+' ms',xx-(i===4?44:i?14:0),h-8);}
+    x.strokeStyle=css('--signal');x.lineWidth=2;x.beginPath();
+    for(let i=0;i<=pw;i++){const y=Y(Spec.val(type,f0,dur*i/pw));i?x.lineTo(l+i,y):x.moveTo(l,y);}x.stroke();
+  }
+  function drawSpec(P,p,f0){
+    const c=H.prep($('bS'));if(!c)return;const {x,w,h}=c,l=52,b=34,t=14,r=12,pw=w-l-r,ph=h-t-b;
+    const xMax=Math.min(512,Math.max(60,8*f0)),ymax=p+3,ymin=p-80;
+    const X=f=>l+f/xMax*pw,Y=q=>t+(ymax-Math.max(q,ymin))/(ymax-ymin)*ph;
+    x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');
+    for(let d=0;d<=80;d+=10){x.beginPath();x.moveTo(l,Y(p-d));x.lineTo(l+pw,Y(p-d));x.stroke();x.fillText(nf(p-d,0),4,Y(p-d)+4);}
+    const st=Math.ceil(xMax/6/10)*10;
+    for(let f=0;f<=xMax;f+=st){x.beginPath();x.moveTo(X(f),t);x.lineTo(X(f),t+ph);x.stroke();x.fillText(String(f),X(f)-6,h-18);}
+    x.fillText('Frekuensi (Hz)',l+pw/2-36,h-4);x.fillText('dBm per 1 Hz',4,10);
+    x.strokeStyle=css('--signal');x.lineWidth=1.5;
+    let pk=1;for(let k=1;k<=Math.min(512,xMax);k++){if(P[k]>P[pk])pk=k;if(P[k]>ymin+0.5){x.beginPath();x.moveTo(X(k),Y(ymin));x.lineTo(X(k),Y(P[k]));x.stroke();}}
+    x.fillStyle=css('--noise');x.beginPath();x.arc(X(pk),Y(P[pk]),4,0,T);x.fill();
+    x.fillText('Puncak: '+pk+' Hz, '+nf(P[pk],1)+' dBm',l+8,t+14);
+    let cum=0,f99=0;for(let k=0;k<P.length;k++){cum+=Util.dBm2mW(P[k]-p);if(cum>=0.99){f99=k;break;}}
+    $('bNote').textContent='Bandwidth yang memuat 99% daya: 0 sampai '+f99+' Hz. Sinyal sinus hanya memakai satu frekuensi; gelombang kotak dan data digital menyebar ke banyak frekuensi sehingga butuh bandwidth lebih besar.';
+  }
+  function render(){
+    if($('B').hidden)return;
+    const g1=g('bG1'),l=g('bL'),g2=g('bG2'),f0=g('bF'),type=$('bSig').value;
+    $('bPV').textContent=nf(ptx,1)+' dBm = '+fmtP(Util.dBm2mW(ptx));$('bG1V').textContent=sg(g1);$('bLV').textContent=sg(-l);$('bG2V').textContent=sg(g2);$('bFV').textContent=f0+' Hz';
+    if(document.activeElement!==$('bW'))$('bW').value=+(Util.dBm2mW(ptx)/1000).toPrecision(4);
+    const L=[ptx,ptx+g1,ptx+g1-l,ptx+g1-l+g2],net=g1-l+g2;
+    const rows=[['Keluaran pemancar (Ptx)','—'],['Penguat daya (PA)',sg(g1)],['Kabel dan konektor',sg(-l)],['Antena pemancar (EIRP)',sg(g2)]];
+    $('bChain').innerHTML=rows.map((q,i)=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td><td class='n'>${nf(L[i],1)}</td><td class='n'>${fmtP(Util.dBm2mW(L[i]))}</td></tr>`).join('')+`<tr><td><b>Total</b></td><td class='n'>${sg(net)}</td><td class='n'></td><td class='n'>×${nf(Util.dB2lin(net),2)}</td></tr>`;
+    drawTime(type,f0,ptx);drawSpec(Spec.spectrum(type,f0,ptx).P,ptx,f0);
+  }
+  $('bP').addEventListener('input',()=>{ptx=g('bP');render();});
+  $('bW').addEventListener('input',()=>{const w=parseFloat($('bW').value);if(w>0){ptx=Math.min(50,Math.max(-10,Util.mW2dBm(w*1000)));$('bP').value=Math.round(ptx*2)/2;render();}});
+  ['bG1','bL','bG2','bF'].forEach(i=>$(i).addEventListener('input',render));$('bSig').addEventListener('change',render);H.hook(render);
+  return{render};
+})();
+
+/* ---- Bagian E: blok RF ---- */
+const E=(()=>{
+  const {$,css,nf}=H;let sel='Mixer';
+  const DESC={
+    LO:'Oscillator/LO: pembangkit sinus stabil yang mengalikan sinyal di mixer. Frekuensinya menentukan besar pergeseran spektrum; derau fasenya ikut mengotori sinyal.',
+    Mixer:'Mixer: mengalikan dua sinyal sehingga muncul komponen pada f1 + f2 dan |f1 − f2|. Dipakai untuk menggeser frekuensi ke atas (up-conversion) atau ke bawah (down-conversion).',
+    Filter:'Filter: meloloskan pita yang diinginkan dan menahan sisanya, misalnya produk mixer yang tidak dipakai, frekuensi citra, atau sinyal di luar kanal.',
+    PA:'PA (power amplifier): menguatkan sinyal ke daya pancar akhir. Harus linear agar QAM tidak terdistorsi, dan paling banyak menyerap daya.',
+    LNA:'LNA (low-noise amplifier): penguat pertama di penerima. Noise figure yang rendah di sini menentukan noise figure seluruh penerima.',
+    ADC:'ADC: mengubah sinyal analog menjadi data digital melalui sampling dan kuantisasi. Laju sampling harus memenuhi syarat Nyquist.',
+    DAC:'DAC: mengubah sampel digital hasil pemetaan simbol menjadi tegangan analog (komponen I dan Q) sebelum frekuensinya dinaikkan.',
+    Antena:'Antena: mengubah sinyal listrik menjadi gelombang elektromagnetik saat memancar, dan sebaliknya saat menerima. Gain-nya (dBi) masuk ke EIRP dan link budget.'};
+  const TX={sh:['DAC','Filter IF','Mixer','Filter BPF','PA','Antena'],dc:['DAC','Filter LPF','Mixer I/Q','Filter BPF','PA','Antena']};
+  const RX={sh:['Antena','Filter BPF','LNA','Filter citra','Mixer','Filter IF','ADC'],dc:['Antena','Filter BPF','LNA','Mixer I/Q','Filter LPF','ADC']};
+  function row(el,list,first,last){
+    el.replaceChildren();
+    const arr=()=>{const a=document.createElement('span');a.className='arr';a.textContent='→';el.appendChild(a);};
+    const txt=s=>{const a=document.createElement('span');a.textContent=s;a.style.paddingBottom='8px';el.appendChild(a);};
+    const blk=(label,key,small)=>{const b=document.createElement('button');b.type='button';b.className='blk'+(small?' sm':'');b.textContent=label;b.setAttribute('aria-pressed',key===sel);b.onclick=()=>{sel=key;render();};return b;};
+    if(first){txt(first);arr();}
+    list.forEach((l,i)=>{if(i)arr();const key=l.split(' ')[0],b=blk(l,key,false);
+      if(key==='Mixer'){const s=document.createElement('span');s.className='stack';s.appendChild(blk('LO','LO',true));s.appendChild(b);el.appendChild(s);}else el.appendChild(b);});
+    if(last){arr();txt(last);}
+  }
+  function render(){
+    if($('E').hidden)return;
+    const a=$('eArch').value,fr=+$('eR').value,fi=+$('eI').value,dc=a==='dc';
+    $('eI').disabled=dc;$('eRV').textContent=fr+' MHz';$('eIV').textContent=dc?'0 (baseband)':fi+' MHz';
+    row($('eTx'),TX[a],'Bit',null);row($('eRx'),RX[a],null,'Bit');$('eDesc').textContent=DESC[sel];
+    const pl=Mix.plan(fr,fi),lines=dc?[[0,'Baseband 0 Hz','--signal',0],[fr,'LO = RF '+fr+' MHz','--ink',0]]:
+      [[fi,'IF '+fi,'--signal',0],[pl.lo,'LO '+pl.lo,'--noise',1],[pl.img,'Citra '+pl.img,'--muted',0],[fr,'RF '+fr,'--ink',1]];
+    const c=H.prep($('eF'));
+    if(c){const {x,w,h}=c,l=24,r=24,pw=w-l-r,mx=fr*1.08,X=f=>l+f/mx*pw,ay=h-26;
+      x.clearRect(0,0,w,h);x.strokeStyle=css('--line');x.lineWidth=1;x.beginPath();x.moveTo(l,ay);x.lineTo(w-r,ay);x.stroke();x.fillStyle=css('--muted');x.textAlign='left';x.fillText('Frekuensi (MHz)',l,h-6);
+      for(const [f,lab,col,lv] of lines){const xx=X(f);x.strokeStyle=css(col);x.lineWidth=2;x.setLineDash(col==='--muted'?[4,3]:[]);x.beginPath();x.moveTo(xx,ay);x.lineTo(xx,20+lv*18);x.stroke();
+        x.fillStyle=css(col==='--muted'?'--muted':col);x.textAlign=xx>w*0.8?'right':xx<50?'left':'center';x.fillText(lab,xx,14+lv*18);}
+      x.setLineDash([]);x.textAlign='left';}
+    $('eT').innerHTML=(dc?[
+      ['Down-conversion (RX)','f_LO = f_RF = '+fr+' MHz; keluaran mixer langsung baseband (0 Hz) pada kanal I dan Q'],
+      ['Up-conversion (TX)','Baseband I/Q dikalikan LO '+fr+' MHz menjadi RF '+fr+' MHz'],
+      ['Catatan','Tidak ada frekuensi citra terpisah, tetapi rentan DC offset dan I/Q imbalance']]:[
+      ['Down-conversion (RX)','f_IF = f_RF − f_LO = '+fr+' − '+pl.lo+' = '+fi+' MHz'],
+      ['Up-conversion (TX)','f_RF = f_LO + f_IF = '+pl.lo+' + '+fi+' = '+fr+' MHz'],
+      ['Frekuensi citra','f_RF − 2·f_IF = '+pl.img+' MHz; juga menghasilkan IF yang sama, jadi harus ditahan filter sebelum mixer']]).map(q=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td></tr>`).join('');
+  }
+  ['eArch','eR','eI'].forEach(i=>$(i).addEventListener('input',render));H.hook(render);
+  return{render};
+})();
+
+/* ---- Bagian F: antena dan link budget ---- */
+const F=(()=>{
+  const {$,css,nf,fmtP,T}=H,v=id=>+$(id).value;
+  const U={fP:' dBm',fGt:' dBi',fLt:' dB',fF:' MHz',fGr:' dBi',fLr:' dB',fMm:' dB',fLm:' dB',fS:' dBm',fR:' Ω',fX:' Ω'};
+  function render(){
+    if($('F').hidden)return;
+    const P=v('fP'),Gt=v('fGt'),Lt=v('fLt'),f=v('fF'),d=Math.pow(10,v('fD')),Gr=v('fGr'),Lr=v('fLr'),Lm=v('fLm'),S=v('fS'),Mt=v('fMm'),R=v('fR'),X=v('fX');
+    for(const k in U)$(k+'V').textContent=v(k)+U[k];$('fDV').textContent=nf(d,2)+' km';
+    const fsp=Link.fspl(d,f),eirp=Link.eirp(P,Gt,Lt),prx=Link.prx(eirp,fsp,Gr,Lr+Lm),mar=Link.margin(prx,S),dmax=Link.rangeKm(eirp,Gr,Lr+Lm,S,f),dT=Link.rangeKm(eirp,Gr,Lr+Lm,S+Mt,f);
+    const st=mar>=Mt?'Layak, memenuhi target margin':mar>=0?'Tersambung, tetapi di bawah target margin':'Tidak layak';
+    $('fOut').innerHTML=[
+      ['FSPL','32,44 + 20·log10('+f+') + 20·log10('+nf(d,2)+')',nf(fsp)+' dB',''],
+      ['EIRP','Ptx + Gtx − Ltx = '+P+' + '+Gt+' − '+Lt,nf(eirp,1)+' dBm ('+fmtP(Util.dBm2mW(eirp))+')',''],
+      ['Daya terima Prx','EIRP − FSPL + Grx − Lr − Loss lain = '+nf(eirp,1)+' − '+nf(fsp)+' + '+Gr+' − '+Lr+' − '+Lm,nf(prx)+' dBm',''],
+      ['Margin link','Prx − Sensitivitas = '+nf(prx)+' − ('+S+'); target ≥ '+Mt+' dB',nf(mar)+' dB: '+st,mar>=Mt?'pass':'fail'],
+      ['Jangkauan maksimum','Jarak saat margin = 0 dB',nf(dmax,1)+' km',''],
+      ['Jangkauan pada target margin','Jarak saat margin = '+Mt+' dB',nf(dT,1)+' km','']
+    ].map(q=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td><td class='n ${q[3]}'>${q[2]}</td></tr>`).join('');
+    const c=H.prep($('fL'));
+    if(c){const {x,w,h}=c,l=52,b=30,t=12,r=26,pw=w-l-r,ph=h-t-b,pa=dd=>eirp-Link.fspl(dd,f)+Gr-Lr-Lm;
+      const ymax=Math.ceil((pa(0.1)+5)/20)*20,ymin=Math.floor(Math.min(S-10,pa(100))/20)*20;
+      const X1=dd=>l+(Math.log10(dd)+1)/3*pw,Y=p=>t+(ymax-p)/(ymax-ymin)*ph;
+      x.clearRect(0,0,w,h);x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');x.textAlign='left';
+      for(let p=ymin;p<=ymax;p+=20){x.beginPath();x.moveTo(l,Y(p));x.lineTo(l+pw,Y(p));x.stroke();x.fillText(p+'',4,Y(p)+4);}
+      x.textAlign='center';[0.1,1,10,100].forEach(dd=>{x.beginPath();x.moveTo(X1(dd),t);x.lineTo(X1(dd),t+ph);x.stroke();x.fillText(String(dd).replace('.',',')+' km',X1(dd),h-10);});
+      x.textAlign='left';x.fillText('Prx (dBm)',4,10);
+      x.strokeStyle=css('--signal');x.lineWidth=2;x.beginPath();
+      for(let i=0;i<=pw;i++){const dd=Math.pow(10,-1+3*i/pw);i?x.lineTo(l+i,Y(pa(dd))):x.moveTo(l,Y(pa(dd)));}x.stroke();
+      x.strokeStyle=css('--noise');x.lineWidth=1.5;x.setLineDash([6,4]);x.beginPath();x.moveTo(l,Y(S));x.lineTo(l+pw,Y(S));x.stroke();
+      if(dmax>=0.1&&dmax<=100){x.beginPath();x.moveTo(X1(dmax),t);x.lineTo(X1(dmax),t+ph);x.stroke();}x.setLineDash([]);
+      x.fillStyle=css('--noise');x.fillText('Sensitivitas '+S+' dBm',l+6,Y(S)-6);
+      x.fillStyle=css('--signal');x.beginPath();x.arc(X1(d),Y(prx),5,0,T);x.fill();x.fillText(nf(prx,1)+' dBm',Math.min(X1(d)+8,w-70),Y(prx)-8);}
+    const gm=Link.gmag(R,X),vs=Link.vswrG(gm);
+    $('fRV').textContent=R+' Ω';$('fXV').textContent=(X>=0?'+':'−')+Math.abs(X)+' Ω';
+    const c2=H.prep($('fV'));
+    if(c2){const {x,w,h}=c2,l=44,b=30,t=12,r=14,pw=w-l-r,ph=h-t-b;
+      const X2=q=>l+(Math.log10(q)-Math.log10(5))/2*pw,Y=q=>t+(10-Math.min(q,10))/9*ph;
+      x.clearRect(0,0,w,h);x.fillStyle=css('--ok');x.globalAlpha=0.14;x.fillRect(l,Y(2),pw,Y(1)-Y(2));x.globalAlpha=1;
+      x.lineWidth=1;x.strokeStyle=css('--line');x.fillStyle=css('--muted');x.textAlign='left';
+      [1,2,3,5,10].forEach(q=>{x.beginPath();x.moveTo(l,Y(q));x.lineTo(l+pw,Y(q));x.stroke();x.fillText(String(q),8,Y(q)+4);});
+      x.textAlign='center';[5,10,50,100,500].forEach(q=>{x.beginPath();x.moveTo(X2(q),t);x.lineTo(X2(q),t+ph);x.stroke();x.fillText(q+' Ω',X2(q),h-10);});
+      x.textAlign='left';x.fillText('VSWR',8,10);
+      x.strokeStyle=css('--signal');x.lineWidth=2;x.beginPath();
+      for(let i=0;i<=pw;i++){const q=5*Math.pow(100,i/pw),y=Y(Link.vswrG(Link.gmag(q,X)));i?x.lineTo(l+i,y):x.moveTo(l,y);}x.stroke();
+      x.fillStyle=css('--noise');x.beginPath();x.arc(X2(R),Y(vs),5,0,T);x.fill();}
+    $('fVt').innerHTML=[
+      ['Koefisien pantul |Γ|',nf(gm,3)],['VSWR',nf(vs,2)+(vs<=2?' (cocok)':' (kurang cocok)')],
+      ['Return loss',gm>0?nf(-20*Math.log10(gm),1)+' dB':'∞ dB'],['Mismatch loss',nf(-10*Math.log10(1-gm*gm),2)+' dB'],['Daya terpantul',nf(gm*gm*100,1)+' %']
+    ].map(q=>`<tr><td>${q[0]}</td><td class='n'>${q[1]}</td></tr>`).join('');
+  }
+  document.querySelectorAll('#F input').forEach(i=>i.addEventListener('input',render));H.hook(render);
+  return{render};
+})();
+
+/* ============ 7. INIT ============ */
+const tabs=[],panels=[];
+window.__renders={A:()=>A.render(),B:()=>{B.render();BC.render();},C:()=>{C.render();CS.render();},D:()=>{D.render();Six.render();},E:()=>E.render(),F:()=>{F.render();FC.render();}};
+function show(id){ if(window.__show) return window.__show(id);
+  if(!panels.some(p=>p.id===id)) id="A";
+  panels.forEach(p=>p.hidden=p.id!==id);
+  tabs.forEach(b=>b.setAttribute('aria-selected', b.dataset.t===id));
+  if(id==="D") D.render();
+  if(id==="C") C.render();
+  if(id==="A") A.render();
+  if(id==="B") B.render();
+  if(id==="E") E.render();
+  if(id==="F") F.render();
+}
+tabs.forEach(b=>b.addEventListener('click',()=>{ show(b.dataset.t); try{history.replaceState(null,'','#'+b.dataset.t);}catch(e){} }));
+window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+show(location.hash.slice(1));
+
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const r=document.documentElement, dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#0f161d';
+  r.setAttribute('data-theme', dark?'light':'dark');
+});
+
+function selfTest(){
+  const rows=[];
+  const add=(nama,hasil,ok)=>rows.push([nama,hasil,ok]);
+  add("dB ↔ linear: 30 dBm", Util.dBm2mW(30).toFixed(1)+" mW (harapan 1000)", Math.abs(Util.dBm2mW(30)-1000)<1e-6);
+  add("Q(0)", Util.Q(0).toFixed(4)+" (harapan 0,5000)", Math.abs(Util.Q(0)-0.5)<1e-4);
+  add("Q(3)", Util.Q(3).toExponential(2)+" (harapan 1,35e-3)", Math.abs(Util.Q(3)-1.35e-3)<2e-5);
+  // FFT: sinus 8 siklus dari 64 titik harus puncak di bin 8
+  const N=64, re=Array.from({length:N},(_,i)=>Math.sin(2*Math.PI*8*i/N)), im=new Array(N).fill(0);
+  Util.fft(re,im);
+  let pk=1; for(let k=1;k<N/2;k++) if(Math.hypot(re[k],im[k])>Math.hypot(re[pk],im[pk])) pk=k;
+  add("FFT sinus 8 siklus", "puncak di bin "+pk+" (harapan 8)", pk===8);
+  // Energi simbol
+  for(const t of ["QPSK","16QAM"]){
+    const bps=MOD[t].bps, bits=Array.from({length:bps*4000},()=>Math.random()<0.5?1:0);
+    const s=mapBits(bits,t), Es=s.reduce((a,p)=>a+p.I*p.I+p.Q*p.Q,0)/s.length;
+    add("Energi simbol "+t, "Es = "+Es.toFixed(3)+" (harapan 1)", Math.abs(Es-1)<0.05);
+    const back=demapSymbols(s,t);
+    add("Map lalu demap tanpa derau "+t, hitungBER(bits,back).errors+" kesalahan dari "+bits.length+" bit", hitungBER(bits,back).errors===0);
+  }
+  // BER Monte Carlo vs teori
+  const r=simulasiBER("QPSK",4,100000), th=berTeori("QPSK",4);
+  add("BER QPSK, Eb/N0 4 dB, 100.000 bit", "simulasi "+r.ber.toExponential(2)+", teori "+th.toExponential(2), r.ber/th>0.8&&r.ber/th<1.2);
+  const r2=simulasiBER("16QAM",8,100000), th2=berTeori("16QAM",8);
+  add("BER 16-QAM, Eb/N0 8 dB, 100.000 bit", "simulasi "+r2.ber.toExponential(2)+", teori "+th2.toExponential(2), r2.ber/th2>0.7&&r2.ber/th2<1.3);
+  // Link
+  const f=Link.fspl(1,2400);
+  add("FSPL 1 km, 2400 MHz", f.toFixed(2)+" dB (harapan 100,05)", Math.abs(f-100.05)<0.05);
+  add("EIRP 20 dBm + 12 dBi − 2 dB", Link.eirp(20,12,2)+" dBm (harapan 30)", Link.eirp(20,12,2)===30);
+  add("VSWR beban 100 Ω pada 50 Ω", Link.vswr(100).toFixed(2)+" (harapan 2,00)", Math.abs(Link.vswr(100)-2)<1e-9);
+  try{
+  add("[B] 1 W = 30 dBm dan 1 mW = 0 dBm",Util.mW2dBm(1000).toFixed(1)+" dBm; "+Util.mW2dBm(1).toFixed(1)+" dBm",Math.abs(Util.mW2dBm(1000)-30)<1e-9&&Util.mW2dBm(1)===0);
+  add("[B] +3 dB ≈ ×2 daya",Util.dB2lin(3).toFixed(3)+" (harapan 1,995)",Math.abs(Util.dB2lin(3)-1.995)<0.001);
+  const sp=Spec.spectrum('sin',20,30);let pk=1;for(let k=1;k<=512;k++)if(sp.P[k]>sp.P[pk])pk=k;
+  add("[B] Puncak spektrum sinus 20 Hz, Ptx 30 dBm","bin "+pk+" Hz, "+sp.P[pk].toFixed(2)+" dBm (harapan 20 Hz, 30 dBm)",pk===20&&Math.abs(sp.P[pk]-30)<0.05);
+  const sq=Spec.spectrum('sq',20,30).P.reduce((a,p)=>a+Util.dBm2mW(p-30),0);
+  add("[B] Total daya spektrum gelombang kotak = Ptx (Parseval)",sq.toFixed(4)+" × Ptx (harapan 1,0000)",Math.abs(sq-1)<1e-6);
+  const sa=sendText('HAI UTS',40);
+  add("[A] Teks → bit → QPSK → derau → teks (Eb/N0 40 dB)",sa.bits.length+" bit, hasil “"+sa.out+"”",sa.bits.length===56&&sa.out==='HAI UTS'&&sa.errors===0);
+  const pkm=Mix.peaks(100,300),pln=Mix.plan(2400,100);
+  add("[E] Mixer: cos(100 Hz) × cos(300 Hz)","puncak di "+pkm.join(" dan ")+" Hz (harapan 200 dan 400)",pkm[0]===200&&pkm[1]===400);
+  add("[E] RF 2400, IF 100 MHz: LO dan frekuensi citra","LO "+pln.lo+", citra "+pln.img+" MHz (harapan 2300 dan 2200)",pln.lo===2300&&pln.img===2200);
+  const fs2=Link.fspl(5,2400),ei=Link.eirp(30,12,2),pr=Link.prx(ei,fs2,12,2),mg=Link.margin(pr,-90),dm=Link.rangeKm(ei,12,2,-90,2400),mgd=Link.margin(Link.prx(ei,Link.fspl(dm,2400),12,2),-90);
+  add("[F] FSPL 5 km, 2400 MHz",fs2.toFixed(2)+" dB (harapan 114,02)",Math.abs(fs2-114.02)<0.01);
+  add("[F] EIRP, Prx, margin (sensitivitas −90 dBm)","EIRP "+ei+" dBm; Prx "+pr.toFixed(2)+" dBm; margin "+mg.toFixed(2)+" dB (harapan 40; −64,02; 25,98)",ei===40&&Math.abs(pr+64.02)<0.01&&Math.abs(mg-25.98)<0.01);
+  add("[F] Margin pada jangkauan maksimum = 0",dm.toFixed(1)+" km, margin "+mgd.toFixed(6)+" dB",Math.abs(mgd)<1e-9);
+  add("[F] Beban 100 Ω pada 50 Ω","|Γ| "+Link.gmag(100).toFixed(3)+", VSWR "+Link.vswrG(Link.gmag(100)).toFixed(2)+" (harapan 0,333 dan 2,00)",Math.abs(Link.gmag(100)-1/3)<1e-9&&Math.abs(Link.vswrG(Link.gmag(100))-2)<1e-9);
+  add("[F] Beban 50 Ω (cocok)","VSWR "+Link.vswrG(Link.gmag(50)).toFixed(2)+" (harapan 1,00)",Link.vswrG(Link.gmag(50))===1);
+  const sc=Skenario.run('SISTEM TELEKOMUNIKASI',100000,2026,6,2);
+  add("[D] Enam skenario memakai deretan bit yang sama",sc.length+" skenario, masing-masing "+sc[0].nBits+" bit",sc.length===6&&sc.every(o=>o.nBits===100000&&o.bits===sc[0].bits));
+  add("[D] Tanpa derau: BER = 0 dan pesan diterima = pesan terkirim",'QPSK '+sc[0].errors+' error, 16-QAM '+sc[3].errors+' error',sc[0].errors===0&&sc[3].errors===0&&sc[0].msgOk&&sc[3].msgOk);
+  add("[D] Energi simbol rata-rata Es = 1 untuk kedua modulasi",'QPSK '+sc[0].esMeas.toFixed(3)+', 16-QAM '+sc[3].esMeas.toFixed(3),Math.abs(sc[0].esMeas-1)<0.02&&Math.abs(sc[3].esMeas-1)<0.02);
+  add("[D] BER naik seiring derau (tanpa < sedang < tinggi)",'QPSK '+sc[0].ber.toExponential(1)+' < '+sc[1].ber.toExponential(1)+' < '+sc[2].ber.toExponential(1)+'; 16-QAM '+sc[3].ber.toExponential(1)+' < '+sc[4].ber.toExponential(1)+' < '+sc[5].ber.toExponential(1),sc[0].ber<sc[1].ber&&sc[1].ber<sc[2].ber&&sc[3].ber<sc[4].ber&&sc[4].ber<sc[5].ber);
+  add("[D] Derau sedang (Eb/N0 6 dB): BER simulasi \u2248 teori",'QPSK '+(sc[1].ber/sc[1].theory).toFixed(2)+'\u00d7, 16-QAM '+(sc[4].ber/sc[4].theory).toFixed(2)+'\u00d7 teori',sc[1].ber/sc[1].theory>0.75&&sc[1].ber/sc[1].theory<1.25&&sc[4].ber/sc[4].theory>0.85&&sc[4].ber/sc[4].theory<1.15);
+  const st16=stepInfo([1,0,1,1],'16QAM',0),stq=stepInfo([1,0],'QPSK',0);
+  add("[C] Langkah simbol 16-QAM, bit 1011",'level I '+st16.levI+', Q '+st16.levQ+', I '+st16.I.toFixed(3)+' (harapan +3, +1, 0,949)',st16.group==='1011'&&st16.levI===3&&st16.levQ===1&&Math.abs(st16.I-3/Math.sqrt(10))<1e-9);
+  add("[C] Langkah simbol QPSK, bit 10",'I '+stq.I.toFixed(3)+', Q '+stq.Q.toFixed(3)+', fase '+stq.phase.toFixed(0)+'\u00b0 (harapan \u22120,707; +0,707; 135\u00b0)',Math.abs(stq.I+Math.SQRT1_2)<1e-9&&Math.abs(stq.Q-Math.SQRT1_2)<1e-9&&Math.round(stq.phase)===135);
+  const ba=Link.budget({P:30,Gt:12,Lt:2,f:2400,d:5,Gr:12,Lr:1,Lm:1,S:-90,Mt:10}),bb=Link.budget({P:30,Gt:12,Lt:2,f:2400,d:10,Gr:12,Lr:1,Lm:1,S:-90,Mt:10});
+  add("[F] Perbandingan: hanya jarak 5 \u2192 10 km yang diubah",'\u0394FSPL '+(bb.fsp-ba.fsp).toFixed(2)+' dB, \u0394EIRP '+(bb.eirp-ba.eirp)+' dB, \u0394margin '+(bb.mar-ba.mar).toFixed(2)+' dB (harapan +6,02; 0; \u22126,02)',Math.abs(bb.fsp-ba.fsp-20*Math.log10(2))<1e-9&&bb.eirp===ba.eirp&&Math.abs(bb.mar-ba.mar+20*Math.log10(2))<1e-9&&ba.status==='Layak');
+  const pw1=Util.dBm2mW(30),r1=RFS.stats(500,100,pw1),r2=RFS.stats(2400,100,pw1);
+  add("[B] Carrier 500 \u2192 2400 MHz: pusat spektrum mengikuti fc",r1.centroid.toFixed(2)+' dan '+r2.centroid.toFixed(2)+' MHz',Math.abs(r1.centroid-500)<0.1&&Math.abs(r2.centroid-2400)<0.1);
+  add("[B] Bandwidth 99% tetap sama untuk fc berbeda",r1.bw99.toFixed(2)+' dan '+r2.bw99.toFixed(2)+' MHz (B = 100 MHz)',Math.abs(r1.bw99-r2.bw99)<0.1&&r1.bw99>80&&r1.bw99<=100.1);
+  add("[B] Daya total spektrum = Ptx (30 dBm = 1000 mW)",r1.total.toFixed(1)+' mW',Math.abs(r1.total-1000)<5);
+}catch(e){add("[uji tambahan] terjadi error",String(e&&e.message||e),false);}
+  document.getElementById('tests').innerHTML=rows.map(([a,b,ok])=>
+    `<tr><td>${a}</td><td class="n">${b}</td><td class="${ok?'pass':'fail'}">${ok?'Lolos':'Gagal'}</td></tr>`).join('');
+}
+try{selfTest();}catch(e){console.error('selfTest',e);}
+});
+</script>
+</body>
+</html>
